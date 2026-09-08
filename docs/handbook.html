@@ -319,6 +319,7 @@
     <li><a href="#sharing">Sharing your mod, and what that protects</a></li>
     <li><a href="#overrides">Overrides: changing the game's own assets</a></li>
     <li><a href="#numbers">Changing the numbers: balance mods</a></li>
+    <li><a href="#abilities">Changing what an ability does</a></li>
     <li><a href="#specs">Making a specialization</a></li>
     <li><a href="#weapons">Making a weapon</a></li>
     <li><a href="#mods">What attachments do: changing a modification</a></li>
@@ -403,6 +404,11 @@
   <div class="trap">
     <span class="tag">Reload after installing</span>
     <p>Containers are mounted <strong>once, at startup</strong>. A mod you have just built and installed is not in the tree until the game is read again &mdash; <strong>Settings &rarr; Reload game</strong>. Without that it looks like the install did nothing.</p>
+  </div>
+
+  <div class="why">
+    <span class="tag">It looks for updates, and you can stop it</span>
+    <p>Once per run the Studio asks GitHub whether a newer release exists, and says so beside the credit in the menu bar if there is one. It sends nothing about you or your mods &mdash; it reads one public page and compares a version number. <strong>About &rarr; Look for a newer version when this starts</strong> turns it off, and it stays off.</p>
   </div>
 </section>
 
@@ -809,6 +815,28 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
   </table>
   </div>
 
+  <h3>Replacing a model, a texture or an icon</h3>
+
+  <p>An override can also carry <em>your own art</em> into the game's own asset. This is the difference between adding a helmet beside the game's and changing the helmet everybody already wears: nothing new appears in any menu, and every character wearing that piece wears yours.</p>
+
+  <p>Start where you would start anything else &mdash; find the part in <strong>Browse the game</strong>, and on <strong>Use this part&hellip;</strong> choose <strong>Replace it in the game</strong> rather than duplicating it. It lands in the mod you have open with the same three steps a duplicate has:</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:20%">Step</th><th>What goes in it</th></tr>
+    <tr><td><strong>Mesh</strong></td><td>Your FBX, with the same fit measurements and the same live preview a duplicate gets &mdash; your model on the game's own skeleton.</td></tr>
+    <tr><td><strong>Materials</strong></td><td>One field per texture the model wears, listed by name and size. Choosing a PNG or TGA shows it in the preview straight away.</td></tr>
+    <tr><td><strong>Icon</strong></td><td>The picture the menu draws for it.</td></tr>
+  </table>
+  </div>
+
+  <p>Each of those is a separate asset in the game, so the Studio quietly makes one override per file as you fill them in and takes them away again if you clear a field. That an armour piece is three or four packages is true and it is the tool's problem, not yours.</p>
+
+  <div class="trap">
+    <span class="tag">A replacement cannot be turned off in game</span>
+    <p>There is no menu entry to un-pick. Removing the mod puts the game's own asset back &mdash; but if you have <em>equipped</em> anything from a mod, unequip it and save before you remove the folder, or the save file will still name a package that is no longer there.</p>
+  </div>
+
   <div class="why">
     <span class="tag">The rule that makes overrides work</span>
     <p>The game keeps <em>two</em> copies of a part's tags: one in the asset itself, one in an index written when the game was built. The menu reads the <strong>display name from the asset</strong> and <strong>availability from the index</strong>. Change only the asset and you get a renamed part that is still locked. The Studio edits both for you &mdash; but it is why an override that &ldquo;looks right&rdquo; can still do nothing, and why the build's own comparison is worth reading.</p>
@@ -862,8 +890,46 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
   <p>Under the stats, a weapon lists the abilities it grants &mdash; its standard shot, its overwatch, whatever else it can do. Click one and the Studio opens that asset, so you can see what it is before deciding whether it is the thing you actually want to change.</p>
 </section>
 
+<section id="abilities">
+  <h2><span class="num">14</span>Changing what an ability does</h2>
+
+  <p>Firestorm's damage, how long Disoriented lasts, how much accuracy it takes off you &mdash; all of it is data, and none of it needs the game unpacking. Open the <strong>Browse the game</strong> tab and press <strong>Abilities</strong>.</p>
+
+  <p>Find the ability, and the page shows you the whole of it: what the game calls it, its description as a player reads it, and every number behind it. Then <strong>Change what it does</strong> puts the assets that hold those numbers into whichever mod you have open, and takes you there. Each one arrives with its numbers under <strong>Its numbers</strong>, laid out exactly like a weapon's stats &mdash; your value on the left, the game's on the right, and anything you leave alone is not shipped.</p>
+
+  <div class="why">
+    <span class="tag">An ability is a signpost, not a number</span>
+    <p>A <code>GA_</code> asset holds almost nothing. What it holds is a list of the <em>effects</em> it applies &mdash; <code>GE_</code> assets &mdash; and each of those carries the actual magnitudes. Firestorm applies five. That is why one press can add several things to your mod, and why the page lists the ability and everything it applies together: what a person means by &ldquo;Firestorm&rdquo; is all of it, and hunting through five assets for one number is what used to send people to a command-line unpacker.</p>
+  </div>
+
+  <h3>Three reasons a number will not do what you expect</h3>
+
+  <p>These are the whole reason the page is worth reading rather than skipping to the boxes. The Studio marks each one on the row, so you never have to find out by shipping.</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:26%">What you see</th><th>What it means</th></tr>
+    <tr><td><strong>read elsewhere</strong> &mdash; a curve table</td><td>The number in the asset is a fallback nobody reads; the real value is a row in a curve table. Changing it builds cleanly and does nothing in game.</td></tr>
+    <tr><td><strong>read elsewhere</strong> &mdash; worked out another way</td><td>The magnitude is derived from one of your attributes, handed in while the game runs, or computed by code. Same story: the number is there, it is editable, and it is ignored.</td></tr>
+    <tr><td><strong>zero, not stored</strong></td><td>A cooked file leaves a zero out entirely, so there are no bytes to write over. The box is greyed out rather than hidden, so you can still see what the ability does.</td></tr>
+  </table>
+  </div>
+
+  <p>Most damage in this game falls into the first two. That is not the Studio giving up &mdash; it is what the game's own files say, and knowing it before you spend an evening on a number is the point.</p>
+
+  <div class="trap">
+    <span class="tag">This is a replacement, not a copy</span>
+    <p>Everything here is an <a href="#overrides">override</a>. You are shipping the game's own ability with a different number in it, so <em>every</em> character who has that ability is affected, and nothing new appears in any menu. There is no way to give one squad member a stronger Firestorm this way &mdash; that would be a new ability, granted by a specialization of your own (<a href="#specs">section 15</a>).</p>
+  </div>
+
+  <h3>What is worth changing</h3>
+
+  <p>Durations and stack counts are the reliable ones: how many turns a debuff lasts, how many stacks an ability applies, how much a flat modifier adds or takes away. <code>GE_Disoriented</code> takes 4 off accuracy and the box says so; type 25 and it takes 25.</p>
+
+</section>
+
 <section id="specs">
-  <h2><span class="num">14</span>Making a specialization</h2>
+  <h2><span class="num">15</span>Making a specialization</h2>
 
   <p>A specialization is the class a recruit is &mdash; Assault, Scout, Padawan. It is a part in exactly the sense everything else here is a part, and it has no mesh whatsoever. What it has instead is a name, an icon, a few abilities granted outright, a starting gear kit, and a <strong>focus tree</strong>: three lines of ability tiers, seventeen rungs in all, which is what a player spends focus climbing.</p>
 
@@ -936,7 +1002,7 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
 </section>
 
 <section id="weapons">
-  <h2><span class="num">15</span>Making a weapon</h2>
+  <h2><span class="num">16</span>Making a weapon</h2>
 
   <p>A weapon is not one asset. The Armoury lists a part; that names a gear kit, which names the weapon actor, which names the loadout, which names a <em>type</em> part carrying the weapon&rsquo;s tag &mdash; and that tag is what picks the weapon&rsquo;s meshes out of palettes shared by every weapon in the game. Five files and <strong>five</strong> mesh palettes, and on disk nothing says they belong together. The <strong>Weapons</strong> tab shows a weapon as one weapon, and does the copying for you.</p>
 
@@ -1098,7 +1164,7 @@ size 6.0 x 61.8 x 6.0 cm  against the game's 4.4 x 75.6 x 10.1 cm  (0.598x)
 </section>
 
 <section id="mods">
-  <h2><span class="num">16</span>What attachments do: changing a modification</h2>
+  <h2><span class="num">17</span>What attachments do: changing a modification</h2>
 
   <p>The barrels, cells, scopes and stabilizers a player buys in the Black Market and fits in the Armoury. There are 64 of them &mdash; four styles per slot, four tiers per style &mdash; and what each one <em>does</em> is a single number on its ability asset. <strong>Attachments &rarr; What attachments do</strong> lists all 64 with that number beside them.</p>
 
@@ -1148,7 +1214,7 @@ size 6.0 x 61.8 x 6.0 cm  against the game's 4.4 x 75.6 x 10.1 cm  (0.598x)
 </section>
 
 <section id="recruits">
-  <h2><span class="num">17</span>Making a recruit out of an enemy</h2>
+  <h2><span class="num">18</span>Making a recruit out of an enemy</h2>
 
   <p>The game fights you with battle droids and never lets you have one. You can hand one to the player: a B1, a B2 or a BX commando who joins the company, carries his own weapon, moves in his own animations and takes his turn like anyone else. None of it needs UE4SS, and none of it touches an asset the game ships.</p>
 
@@ -1185,7 +1251,7 @@ size 6.0 x 61.8 x 6.0 cm  against the game's 4.4 x 75.6 x 10.1 cm  (0.598x)
 </section>
 
 <section id="traps">
-  <h2><span class="num">18</span>Traps that cost real hours</h2>
+  <h2><span class="num">19</span>Traps that cost real hours</h2>
 
   <ul>
     <li><strong>Ids must be unique across installed mods.</strong> Not just within your mod. Two mods sharing an id cook to the same package path and one silently wins.</li>
@@ -1211,7 +1277,7 @@ size 6.0 x 61.8 x 6.0 cm  against the game's 4.4 x 75.6 x 10.1 cm  (0.598x)
 </section>
 
 <section id="files">
-  <h2><span class="num">19</span>Where everything lives</h2>
+  <h2><span class="num">20</span>Where everything lives</h2>
 
   <div class="scroll">
   <table>

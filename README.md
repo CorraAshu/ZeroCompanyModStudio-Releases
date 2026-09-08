@@ -22,10 +22,12 @@ and run `ZeroCompanyModStudio.exe`
 | **Classes** | Copy a specialization and rebuild its focus tree from any of the game's 826 abilities. |
 | **Attachments** | Rename, re-cost and re-stat any of the 64 weapon modifications. |
 | **Battle droids as recruits** | Turn a B1, B2 or BX commando into a squad member who fights with his own animations, his own weapon and his own action points. |
+| **Replacements** | Change the game's own asset instead of adding beside it. Your model becomes the helmet everybody already wears &mdash; no new menu entry, no duplicate to find. |
+| **Abilities** | Change what an ability does. All 826 of them, with every number behind each one, and a warning on any that the game works out somewhere else. |
 
 Everything is made by copying something the game already has, so a part you make behaves like a
-part the game shipped. **Nothing belonging to the game is overwritten.** A mod is a folder in
-`SWZeroCompany\Mods`; deleting it removes the mod completely.
+part the game shipped. **The game's own files are never written to.** A mod is a folder in
+`SWZeroCompany\Mods`; deleting it removes the mod completely, replacements included.
 
 ## Getting started
 
