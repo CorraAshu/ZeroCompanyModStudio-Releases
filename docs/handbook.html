@@ -320,6 +320,7 @@
     <li><a href="#overrides">Overrides: changing the game's own assets</a></li>
     <li><a href="#numbers">Changing the numbers: balance mods</a></li>
     <li><a href="#abilities">Changing what an ability does</a></li>
+    <li><a href="#tables">Tables: every other number in the game</a></li>
     <li><a href="#specs">Making a specialization</a></li>
     <li><a href="#weapons">Making a weapon</a></li>
     <li><a href="#mods">What attachments do: changing a modification</a></li>
@@ -928,8 +929,37 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
 
 </section>
 
+<section id="tables">
+  <h2><span class="num">15</span>Tables: every other number in the game</h2>
+
+  <p>What an action costs in action points, how long a duel runs, what a hologram tints to &mdash; most of the game's numbers are not attached to a weapon or an ability at all. They live in <strong>data tables</strong>: 852 of them, each a list of named rows with numbered fields.</p>
+
+  <p><strong>Browse the game &rarr; Tables.</strong> Find one, and the page shows what its rows are, how many there are, and the numbers in them. <strong>Change these numbers</strong> puts the table into whichever mod you have open, and its rows arrive under <strong>Its numbers</strong> as a grid: rows down the left, editable fields across, one box each.</p>
+
+  <p>Row names are long and repetitive &mdash; every row of the cost table begins <code>BitReactor.AbilityCost.</code> &mdash; so the grid shows the last part and the whole name is in the tooltip, along with everything the columns leave out. There is a <strong>Find a row</strong> box above the grid for the big tables.</p>
+
+  <div class="win">
+    <span class="tag">A zero can be raised here</span>
+    <p>A cooked file stores no zeros, so a field reading zero has no bytes to write over &mdash; but a table row can be <em>grown</em>, and the Studio does it for you. Type a value into a zero and it works; it is simply a larger edit than changing one. This is the one place where that is true: a zero on an ability or a part cannot be raised.</p>
+  </div>
+
+  <h3>Only some fields get a box</h3>
+
+  <p>A field gets an editable box when it is a number the build can write &mdash; a decimal, or a whole number. Names, tags, references and true/false are shown in the row's tooltip and cannot be changed here. That distinction is not cosmetic: a true/false reads as a number and is one byte, and a box that wrote four bytes over it would quietly destroy the two fields after it.</p>
+
+  <div class="trap">
+    <span class="tag">Some tables are built from other tables</span>
+    <p><code>DT_Costs</code> is a <em>composite</em>: it declares that its rows come from <code>DT_CostsTable_v4</code>. Cooking baked a copy of those rows into both, so five tables in that one folder all look editable, all accept an edit, and all read back correctly &mdash; and the running game may only take its numbers from one of them.</p>
+    <p>The Studio says so on the page and gives you a button to open the parent. If an edit builds, installs and changes nothing in game, that is the first thing to check: <strong>make the same change in the parent table too.</strong></p>
+  </div>
+
+  <h3>What this is not</h3>
+
+  <p>Editing a table here is an <a href="#overrides">override</a> &mdash; you are shipping the game's own table with different numbers in it, so it applies to everyone and everything that reads it. If you want a duplicated weapon to have damage numbers of its own without touching every other weapon of that type, that is a different thing: duplicate the weapon and use its own <strong>Its numbers</strong> step, which copies the table for you.</p>
+</section>
+
 <section id="specs">
-  <h2><span class="num">15</span>Making a specialization</h2>
+  <h2><span class="num">16</span>Making a specialization</h2>
 
   <p>A specialization is the class a recruit is &mdash; Assault, Scout, Padawan. It is a part in exactly the sense everything else here is a part, and it has no mesh whatsoever. What it has instead is a name, an icon, a few abilities granted outright, a starting gear kit, and a <strong>focus tree</strong>: three lines of ability tiers, seventeen rungs in all, which is what a player spends focus climbing.</p>
 
@@ -1002,7 +1032,7 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
 </section>
 
 <section id="weapons">
-  <h2><span class="num">16</span>Making a weapon</h2>
+  <h2><span class="num">17</span>Making a weapon</h2>
 
   <p>A weapon is not one asset. The Armoury lists a part; that names a gear kit, which names the weapon actor, which names the loadout, which names a <em>type</em> part carrying the weapon&rsquo;s tag &mdash; and that tag is what picks the weapon&rsquo;s meshes out of palettes shared by every weapon in the game. Five files and <strong>five</strong> mesh palettes, and on disk nothing says they belong together. The <strong>Weapons</strong> tab shows a weapon as one weapon, and does the copying for you.</p>
 
@@ -1164,7 +1194,7 @@ size 6.0 x 61.8 x 6.0 cm  against the game's 4.4 x 75.6 x 10.1 cm  (0.598x)
 </section>
 
 <section id="mods">
-  <h2><span class="num">17</span>What attachments do: changing a modification</h2>
+  <h2><span class="num">18</span>What attachments do: changing a modification</h2>
 
   <p>The barrels, cells, scopes and stabilizers a player buys in the Black Market and fits in the Armoury. There are 64 of them &mdash; four styles per slot, four tiers per style &mdash; and what each one <em>does</em> is a single number on its ability asset. <strong>Attachments &rarr; What attachments do</strong> lists all 64 with that number beside them.</p>
 
@@ -1214,7 +1244,7 @@ size 6.0 x 61.8 x 6.0 cm  against the game's 4.4 x 75.6 x 10.1 cm  (0.598x)
 </section>
 
 <section id="recruits">
-  <h2><span class="num">18</span>Making a recruit out of an enemy</h2>
+  <h2><span class="num">19</span>Making a recruit out of an enemy</h2>
 
   <p>The game fights you with battle droids and never lets you have one. You can hand one to the player: a B1, a B2 or a BX commando who joins the company, carries his own weapon, moves in his own animations and takes his turn like anyone else. None of it needs UE4SS, and none of it touches an asset the game ships.</p>
 
@@ -1251,7 +1281,7 @@ size 6.0 x 61.8 x 6.0 cm  against the game's 4.4 x 75.6 x 10.1 cm  (0.598x)
 </section>
 
 <section id="traps">
-  <h2><span class="num">19</span>Traps that cost real hours</h2>
+  <h2><span class="num">20</span>Traps that cost real hours</h2>
 
   <ul>
     <li><strong>Ids must be unique across installed mods.</strong> Not just within your mod. Two mods sharing an id cook to the same package path and one silently wins.</li>
@@ -1277,7 +1307,7 @@ size 6.0 x 61.8 x 6.0 cm  against the game's 4.4 x 75.6 x 10.1 cm  (0.598x)
 </section>
 
 <section id="files">
-  <h2><span class="num">20</span>Where everything lives</h2>
+  <h2><span class="num">21</span>Where everything lives</h2>
 
   <div class="scroll">
   <table>
