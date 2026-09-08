@@ -35,8 +35,8 @@ part the game shipped. **Nothing belonging to the game is overwritten.** A mod i
 
 Both guides ship inside the download and are also on the web:
 
-- **[Your First Mod](https://claude.ai/code/artifact/bf1099df-b672-4e4d-bad0-cb7bdfec051a)** &mdash; start here
-- **[The Complete Handbook](https://claude.ai/code/artifact/28a8f782-b287-4f37-be1d-4665e30829c4)** &mdash; every feature, and why each one works the way it does
+- **[Your First Mod](https://corraashu.github.io/ZeroCompanyModStudio-Releases/first-mod.html)** &mdash; start here
+- **[The Complete Handbook](https://corraashu.github.io/ZeroCompanyModStudio-Releases/handbook.html)** &mdash; every feature, and why each one works the way it does
 
 ## Before you build
 

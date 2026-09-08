@@ -1,0 +1,1239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>:root{color-scheme:light dark}body{margin:0;padding:0}img{max-width:100%}</style>
+<title>Zero Company Mod Studio Handbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+<style>
+  :root {
+    --ground:      #f4f5f7;
+    --surface:     #ffffff;
+    --surface-2:   #eceef2;
+    --line:        #d3d7e0;
+    --ink:         #1a1d24;
+    --ink-soft:    #4a5160;
+    --muted:       #6d7585;
+    --accent:      #1f6fb8;
+    --accent-soft: #e4eef8;
+    --warn:        #9a6410;
+    --warn-soft:   #fbf1dd;
+    --good:        #1f7a45;
+    --good-soft:   #e3f3e9;
+    --code-bg:     #eceef2;
+
+    --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #101319;
+      --surface:     #171b23;
+      --surface-2:   #1e232d;
+      --line:        #2b313d;
+      --ink:         #e6e9ef;
+      --ink-soft:    #b9c0cd;
+      --muted:       #838d9f;
+      --accent:      #4d9ee6;
+      --accent-soft: #17293b;
+      --warn:        #e0a33a;
+      --warn-soft:   #2e2415;
+      --good:        #5fbf7f;
+      --good-soft:   #16281d;
+      --code-bg:     #1e232d;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #101319;
+    --surface:     #171b23;
+    --surface-2:   #1e232d;
+    --line:        #2b313d;
+    --ink:         #e6e9ef;
+    --ink-soft:    #b9c0cd;
+    --muted:       #838d9f;
+    --accent:      #4d9ee6;
+    --accent-soft: #17293b;
+    --warn:        #e0a33a;
+    --warn-soft:   #2e2415;
+    --good:        #5fbf7f;
+    --good-soft:   #16281d;
+    --code-bg:     #1e232d;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.65;
+    margin: 0;
+    padding: 0 20px 120px;
+  }
+
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  /* ---------------------------------------------------------------- masthead */
+  header.masthead {
+    padding: 72px 0 40px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 48px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 18px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(38px, 7vw, 62px);
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    margin: 0 0 20px;
+    text-wrap: balance;
+  }
+  .standfirst {
+    font-size: 20px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin: 0;
+  }
+  .standfirst strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------------------------------------------------------------- contents */
+  nav.toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 24px 28px;
+    margin: 0 0 56px;
+  }
+  nav.toc h2 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 14px;
+    border: 0;
+    padding: 0;
+  }
+  nav.toc ol { margin: 0; padding: 0; list-style: none; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; margin: 0 0 6px; }
+  nav.toc li::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    margin-right: 14px;
+  }
+  nav.toc a { color: var(--ink); text-decoration: none; border-bottom: 1px solid transparent; }
+  nav.toc a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+
+  /* ---------------------------------------------------------------- sections */
+  section { margin: 0 0 64px; scroll-margin-top: 24px; }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    text-wrap: balance;
+  }
+  h2 .num {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--accent);
+    display: block;
+    letter-spacing: 0.14em;
+    margin-bottom: 10px;
+  }
+  h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 20px;
+    margin: 34px 0 10px;
+    color: var(--ink);
+  }
+  h4 {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 26px 0 8px;
+  }
+  p { margin: 0 0 16px; max-width: 68ch; }
+  ul, ol { max-width: 68ch; padding-left: 22px; }
+  li { margin: 0 0 8px; }
+  strong { font-weight: 600; }
+  em { font-style: italic; color: var(--ink-soft); }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.87em;
+    background: var(--code-bg);
+    padding: 2px 5px;
+    border-radius: 3px;
+    word-break: break-word;
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.6;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  /* ---------------------------------------------------------------- steps */
+  ol.steps { list-style: none; padding: 0; counter-reset: step; margin: 24px 0; }
+  ol.steps > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 52px;
+    margin: 0 0 26px;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: -2px;
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+  }
+  ol.steps > li > strong:first-child {
+    display: block;
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  /* ---------------------------------------------------------------- callouts */
+  .note, .trap, .win, .why {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--muted);
+    background: var(--surface);
+    border-radius: 3px;
+    padding: 16px 18px;
+    margin: 0 0 22px;
+  }
+  .note p:last-child, .trap p:last-child, .win p:last-child, .why p:last-child { margin-bottom: 0; }
+  .note .tag, .trap .tag, .win .tag, .why .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .trap { border-left-color: var(--warn); background: var(--warn-soft); }
+  .trap .tag { color: var(--warn); }
+  .win { border-left-color: var(--good); background: var(--good-soft); }
+  .win .tag { color: var(--good); }
+  .why { border-left-color: var(--accent); background: var(--accent-soft); }
+  .why .tag { color: var(--accent); }
+
+  /* ---------------------------------------------------------------- tables */
+  .scroll { overflow-x: auto; margin: 0 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 480px; }
+  th, td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom-color: var(--ink-soft);
+  }
+  td code { white-space: nowrap; }
+
+  .mermaid { background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 18px; margin: 0 0 22px; overflow-x: auto; }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 14px;
+  }
+  footer p { max-width: 68ch; }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Star Wars Zero Company &middot; Mod Studio</p>
+  <h1>The Complete Handbook</h1>
+  <p class="standfirst">Everything the Mod Studio does, in the order you will need it &mdash; from duplicating a part you saw in game to importing your own mesh and textures. <strong>No Unreal Engine install required</strong> at any point.</p>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#what">What a mod actually is here</a></li>
+    <li><a href="#setup">First run and the window</a></li>
+    <li><a href="#loop">The core loop: duplicate a part</a></li>
+    <li><a href="#rex">Worked example: Rex's armour for everyone</a></li>
+    <li><a href="#editor">The part editor, field by field</a></li>
+    <li><a href="#mesh">Importing your own mesh</a> &mdash; and getting the game's into Blender</li>
+    <li><a href="#textures">Replacing textures</a></li>
+    <li><a href="#icons">Icons</a></li>
+    <li><a href="#build">Building, and what the check catches</a></li>
+    <li><a href="#install">Installing and removing</a></li>
+    <li><a href="#sharing">Sharing your mod, and what that protects</a></li>
+    <li><a href="#overrides">Overrides: changing the game's own assets</a></li>
+    <li><a href="#numbers">Changing the numbers: balance mods</a></li>
+    <li><a href="#specs">Making a specialization</a></li>
+    <li><a href="#weapons">Making a weapon</a></li>
+    <li><a href="#mods">What attachments do: changing a modification</a></li>
+    <li><a href="#recruits">Making a recruit out of an enemy</a></li>
+    <li><a href="#traps">Traps that cost real hours</a></li>
+    <li><a href="#files">Where everything lives</a></li>
+  </ol>
+</nav>
+
+<section id="what">
+  <h2><span class="num">01</span>What a mod actually is here</h2>
+
+  <p>A mod is a folder the game reads on startup. The Studio writes it for you, and it contains a small set of cooked files:</p>
+
+  <pre><code>&lt;game&gt;\SWZeroCompany\Mods\YourMod\
+    YourMod.uplugin
+    AssetRegistry.bin
+    Content\Paks\YourMod_P.pak
+    Content\Paks\YourMod_P.ucas
+    Content\Paks\YourMod_P.utoc</code></pre>
+
+  <p>The game's own mod runtime finds that folder and mounts it at a higher priority than the base game, which is what lets a mod add parts and replace assets. <strong>Nothing belonging to the game is overwritten on disk.</strong> Removing the folder removes the mod completely.</p>
+
+  <p>There are two kinds of thing you can put in one:</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:22%">Kind</th><th>What it does</th></tr>
+    <tr><td><strong>Part</strong></td><td>Adds something <em>new</em> to the game &mdash; a helmet, a torso, a specialisation. Built by copying an existing part and changing it.</td></tr>
+    <tr><td><strong>Override</strong></td><td>Ships a changed copy of one of the game's <em>own</em> assets under its own name. This is how a locked specialisation or weapon gets opened up.</td></tr>
+  </table>
+  </div>
+
+  <p>Most of what you will do is parts. Overrides are section 11.</p>
+</section>
+
+<section id="setup">
+  <h2><span class="num">02</span>First run and the window</h2>
+
+  <p>The first time you open the Studio it finds your Zero Company install by itself, reads the data-layout file it ships with, and remembers where the game is. <strong>That is asked once.</strong> If it cannot find the game, point it at the folder containing <code>SWZeroCompany</code>.</p>
+
+  <p>Every launch after that it checks the game against the file it ships with, and warns you if the game has been patched since. That warning matters: the tool reads the game's data through that file, and against a newer build it does not fail &mdash; it reads <em>wrong values</em>, silently. If you see it, expect names, icons and slots to be unreliable until a new one is available.</p>
+
+  <h3>The window</h3>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:24%">Panel</th><th>What it is for</th></tr>
+    <tr><td><strong>Assets</strong></td><td>The raw file tree of the game <em>and of every mod you have installed</em> &mdash; see &ldquo;Finding your own mod&rdquo; below, because it is not where you would guess. You can open your own mod's mesh in the viewport from here without launching the game.</td></tr>
+    <tr><td><strong>Viewport</strong></td><td>Previews whatever mesh you click. Drag to orbit.</td></tr>
+    <tr><td><strong>Details</strong></td><td>The rig and asset information for whatever is loaded.</td></tr>
+    <tr><td><strong>Log</strong></td><td>What the tool is doing. Read it when something is unexpected.</td></tr>
+  </table>
+  </div>
+
+  <p>Along the bottom is the tab strip. The two that matter for modding are <strong>Parts</strong> (find something) and <strong>Mod</strong> (change it and build it).</p>
+
+  <h3>Finding your own mod in the Assets tree</h3>
+
+  <p><strong>Press &ldquo;Show its files&rdquo;</strong> on the Mod tab, next to Install. It finds your mod's own packages and lists them in the Assets panel. That is the answer &mdash; you do not need to know the path.</p>
+
+  <p>The rest of this is why, and only worth reading if you are curious. There is a node at the top of the tree named after each installed mod, and it is <strong>almost empty</strong>: the plugin descriptor, a registry, three small files, none of your artwork. Everything real is cooked into the <em>game's</em> path space instead, at</p>
+
+  <pre><code>SWZeroCompany
+  Content
+    Game
+      Customizations
+        Mods
+          YourMod
+            CPD_Mod_YourPart.uasset      the part
+            SK_....uasset                the mesh, if it carries its own
+            MI_....uasset                the material
+            T_....uasset / .ubulk        the textures</code></pre>
+
+  <p>Which is four levels down and named after the game, not after you &mdash; so nobody would find it by looking. Hence the button. Typing your mod's name into <strong>Search paths&hellip;</strong> does the same thing by hand.</p>
+
+  <div class="win">
+    <span class="tag">You can preview it</span>
+    <p>Click the mesh and it loads in the viewport like any game asset &mdash; your own copy, with your own textures on it. That is a real read-back of what you shipped, not a preview of what you asked for, so it is worth doing before you launch the game.</p>
+  </div>
+
+  <div class="trap">
+    <span class="tag">Reload after installing</span>
+    <p>Containers are mounted <strong>once, at startup</strong>. A mod you have just built and installed is not in the tree until the game is read again &mdash; <strong>Settings &rarr; Reload game</strong>. Without that it looks like the install did nothing.</p>
+  </div>
+</section>
+
+<section id="loop">
+  <h2><span class="num">03</span>The core loop: duplicate a part</h2>
+
+  <p>Nearly every mod starts by copying something the game already has. You do not build a part from nothing &mdash; you take one that works and change the bits you want.</p>
+
+  <pre class="mermaid">
+flowchart LR
+  A["Parts tab<br/>find a part"] --> B["Use as<br/>a mod part"]
+  B --> C["Mod tab<br/>edit it"]
+  C --> D["Build mod"]
+  D --> E{"reads back<br/>clean?"}
+  E -- no --> C
+  E -- yes --> F["Install<br/>into the game"]
+  </pre>
+
+  <ol class="steps">
+    <li>
+      <strong>Find it in the Parts tab</strong>
+      Type into the filter &mdash; a name, a character, a word from the menu. Each row shows the game's own thumbnail, so you are looking at the same picture the game shows you.
+    </li>
+    <li>
+      <strong>Press &ldquo;Use as a mod part&rdquo;</strong>
+      This stages a copy. It carries across the mesh, the icon, the slot, whether it hides the head, and &mdash; importantly &mdash; <em>the original part as its template</em>.
+    </li>
+    <li>
+      <strong>Switch to the Mod tab and accept it</strong>
+      The staged part appears with an Add / Discard prompt. If you have no mod open yet, name one and press Create first.
+    </li>
+    <li>
+      <strong>Change what you want</strong>
+      At minimum give it a name people will see in the menu. Everything else has a sensible default.
+    </li>
+    <li>
+      <strong>Build, then Install</strong>
+      Build writes the files and immediately reads them back. Install is only offered if that read-back was clean.
+    </li>
+  </ol>
+
+  <div class="note">
+    <span class="tag">Finding things in a list of eleven hundred</span>
+    <p>The Parts list is grouped into fold-away sections, in the order you would dress a character &mdash; Headwear, Tops, Armwear, Lower body, Boots, then everything else. <strong>Collapse all</strong> puts the whole catalogue on one screen, which is the fastest way to see what kind of thing exists before you go looking for one.</p>
+    <p>Where a name is genuinely ambiguous the row says why. Six entries called &ldquo;ARC Trooper Phase II&rdquo; are the same helmet in different colourways, and each row carries the part of its asset name that differs &mdash; <code>base</code>, <code>TintA</code>, <code>TintB</code> &mdash; so you can tell them apart without opening each one.</p>
+  </div>
+
+  <div class="why">
+    <span class="tag">Why the template matters</span>
+    <p>A part is more than a mesh. It carries a base class and a set of fragments &mdash; the voice filter, the ability list, the attribute tables. Copying <em>the part you picked</em> keeps all of that. An earlier version of this tool took only the mesh and then guessed at a base, and a clone helmet came back built on a Mandalorian part: right geometry, no clone voice filter. Pressing &ldquo;Use as a mod part&rdquo; sets the template for you, which is why it is better than adding a blank part and filling in a mesh path.</p>
+  </div>
+</section>
+
+<section id="rex">
+  <h2><span class="num">04</span>Worked example: Rex's armour for everyone</h2>
+
+  <p>This is the thing most people want first, and it is worth explaining <em>why</em> it works, because the reason is not what most people assume.</p>
+
+  <p>Captain Rex's armour exists in the game as six ordinary outfit parts:</p>
+
+  <pre><code>CPD_H_Outfit_CaptainRexA_HELM     Helmet
+CPD_H_Outfit_CaptainRexA_TORS     Torso
+CPD_H_Outfit_CaptainRexA_ARMS     Arms
+CPD_H_Outfit_CaptainRexA_LEGS     Legs
+CPD_H_Outfit_CaptainRexA_BOOT     Boots
+CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
+
+  <div class="win">
+    <span class="tag">The key fact</span>
+    <p>Those parts are <strong>not locked to Rex</strong>. They carry no character restriction at all. What keeps them out of your menu is a development gate &mdash; and <strong>a copy does not inherit that gate</strong>, because the copy is registered under its own name with the gate tags stripped. So duplicating them is genuinely all it takes.</p>
+  </div>
+
+  <p>Which makes the recipe short:</p>
+
+  <ol class="steps">
+    <li>
+      <strong>Create a mod</strong>
+      Mod tab &rarr; type a name (say <code>RexArmour</code>) &rarr; Create mod.
+    </li>
+    <li>
+      <strong>Filter the Parts tab for <code>CaptainRexA</code></strong>
+      All six pieces come up together.
+    </li>
+    <li>
+      <strong>Use each one as a mod part</strong>
+      One at a time. Six parts, six presses. Each lands in your mod with its slot and mesh already correct.
+    </li>
+    <li>
+      <strong>Name them for the menu</strong>
+      They default to <em>&ldquo;&hellip; (Mod)&rdquo;</em>. Something like <em>&ldquo;501st Captain &mdash; Helmet&rdquo;</em> reads better in game.
+    </li>
+    <li>
+      <strong>Build and install</strong>
+      Then start the game and look in the armoury. Every humanoid character can wear them &mdash; Hawks included &mdash; because nothing in the copy says otherwise.
+    </li>
+  </ol>
+
+  <h3>Parts that <em>are</em> locked to a character</h3>
+
+  <p>Some parts genuinely are restricted &mdash; heads, hair, and hero gear kits. Hawks has 32 such parts, Tel-Rea 24, Cly 16. They carry a name tag like <code>br.Customization.Part.Character.Info.Name.CaptainRex</code>, and a copy <em>does</em> inherit it. The build tells you when that happens:</p>
+
+  <pre><code>CPD_Mod_Something: restricted to CaptainRex
+                   by the template it was built from</code></pre>
+
+  <p>Stripping that tag is what frees the part, and the part editor has a <strong>Remove tags</strong> box for exactly this. It lists the tags the template actually carries, so you pick the name tag out of a list rather than typing fifty characters of dotted namespace. The build then confirms it: <em>&ldquo;unlocked for everyone&rdquo;</em>.</p>
+
+  <h3>Going the other way</h3>
+
+  <p><strong>For character</strong> restricts a part to one person. Choosing a name writes that character's tag onto the copy and takes any other one off, so it means exactly them. Leave it on <em>everyone</em> unless you specifically want a piece only one character can wear.</p>
+
+  <div class="note">
+    <span class="tag">These are separate</span>
+    <p>Setting <strong>For character</strong> to <em>everyone</em> does not <em>remove</em> an inherited restriction &mdash; it just does not add one. If your copy came from a hero's own gear, use <strong>Remove tags</strong> to take their name tag off.</p>
+  </div>
+</section>
+
+<section id="editor">
+  <h2><span class="num">05</span>The part editor, field by field</h2>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:26%">Field</th><th>What it does</th></tr>
+    <tr><td><strong>Id</strong></td><td>The asset name. Must be unique across <em>every mod installed at once</em> &mdash; two mods sharing an id cook to the same path and one silently wins. Duplicating names it <code>CPD_Mod_&lt;original&gt;</code>, which makes a collision obvious.</td></tr>
+    <tr><td><strong>Name in menu</strong></td><td>What the player reads. The only field you should always change. Works even when the template has no name of its own &mdash; about a third of the game's parts do not, because they were never meant to appear in a menu, and those are exactly the ones worth copying.</td></tr>
+    <tr><td><strong>Slot</strong></td><td>Head, Helmet, Torso, Arms, Legs, Boots for what a character wears. Also Specialization, Talent and the weapon slots &mdash; those carry no geometry at all. <strong>Head</strong> is a face rather than an outfit piece, and it comes with one condition worth knowing: see below.</td></tr>
+    <tr><td><strong>Hides the head</strong></td><td>Helmets need this. Without it the character's face and hair render through the visor.</td></tr>
+    <tr><td><strong>Built from</strong></td><td>The template. Set for you when you duplicate. Leaving it blank makes the builder rank the catalogue and pick one, which is fine for a plain outfit piece and wrong for anything with behaviour attached.</td></tr>
+    <tr><td><strong>Carry my own copy of the mesh</strong></td><td>Copies the mesh into your mod instead of pointing at the game's. Nothing looks different; the mesh is now yours to replace, and the mod grows by its size. Turns itself on if you import a mesh or textures.</td></tr>
+    <tr><td><strong>Mesh</strong></td><td>Full object path, ending in <code>.AssetName</code>. Without that suffix it imports as an empty pointer and the part equips nothing. Use Browse.</td></tr>
+    <tr><td><strong>This garment is N pieces</strong></td><td>Only appears when the part dresses more than its own slot &mdash; Clone Commando armour is five pieces from the Torso slot. One row per piece; open one to give that piece its own mesh or imported file. A piece you leave alone keeps the game's geometry. See <a href="#mesh">Importing your own mesh</a>.</td></tr>
+    <tr><td><strong>Icon</strong></td><td>A game texture's path, or a PNG/TGA filename in <code>ModSource/Icons</code>.</td></tr>
+    <tr><td><strong>For character</strong></td><td>Who may wear it, chosen from a list. <em>everyone</em> is almost always right. Picking a name writes that character's tag and strips any other. It does not remove a restriction the copy inherited &mdash; that is Remove tags.</td></tr>
+    <tr><td><strong>Remove tags</strong></td><td>Tags to take off the copy, listed from what the template carries. This is how a hero's gear becomes everybody's.</td></tr>
+    <tr><td><strong>Anim class</strong></td><td>Optional post-process animation blueprint. Carried across when you duplicate.</td></tr>
+    <tr><td><strong>Swap abilities</strong></td><td>For specialisations and talents. Replaces one of the template's abilities with another; the description, icon and tuning all travel with it.</td></tr>
+    <tr><td><strong>Own words</strong></td><td>Replaces text on the part, such as its short description.</td></tr>
+  </table>
+  </div>
+</section>
+
+<section id="mesh">
+  <h2><span class="num">06</span>Importing your own mesh</h2>
+
+  <p>In the part editor, open <strong>My own mesh</strong> and press <strong>Browse</strong>. The popup has an <strong>Import an FBX&hellip;</strong> button that copies your file into <code>ModSource/Meshes</code> and selects it &mdash; the folder is created for you. Files already in that folder are listed alongside.</p>
+
+  <h4>Requirements</h4>
+  <ul>
+    <li><strong>Binary FBX.</strong> Not ASCII.</li>
+    <li><strong>Skinned to the bones the part already uses.</strong> A weight on any other bone is dropped, and the build tells you which bones it dropped.</li>
+    <li><strong>Keep the part's slot.</strong> A torso mesh in a helmet slot will equip in the helmet slot and look exactly as wrong as that sounds.</li>
+  </ul>
+
+  <div class="why">
+    <span class="tag">Why the bone list matters</span>
+    <p>Every humanoid part in this game is skinned to the same skeleton. That is what makes Rex's torso wearable by Hawks in the first place, and it is what makes your own mesh wearable by anybody &mdash; provided you weighted it to bones that exist on that skeleton. Export the part you are replacing first, use its rig as your reference, and the weights land where the game expects them.</p>
+  </div>
+
+  <h4>Heads keep their facial animation &mdash; if you keep the vertex count</h4>
+
+  <p>A head is not like the other slots. Beside its geometry it carries several hundred <em>morph targets</em>: the per-vertex deltas that are every expression the character can make. They are stored as compressed deltas addressed <strong>by vertex number</strong>, which means they only make sense against the exact vertices they were built for.</p>
+
+  <p>So the Studio applies one rule, and it is worth designing around:</p>
+
+  <ul>
+    <li><strong>Same vertex count as the head you started from</strong> &mdash; the expressions are carried through untouched. This is what you get if you export the head, move its vertices about, and bring it back. The face still acts.</li>
+    <li><strong>Any other count</strong> &mdash; the deltas would point at vertices that no longer exist, so they are dropped. The head renders correctly and is completely still. The build says so in as many words; it is never silent.</li>
+  </ul>
+
+  <p>If the face matters, <strong>edit the vertices of an existing head rather than modelling a new one</strong>. Adding or removing a single vertex costs you every expression, and nothing about the result looks wrong until the character tries to speak.</p>
+
+  <p>Only the closest level of detail carries expressions, in the game's own heads as much as in yours &mdash; so a face that stops animating at a distance is the game working normally, not your mod.</p>
+
+  <p>Importing a mesh switches on <strong>Carry my own copy of the mesh</strong> automatically, because your geometry has to live somewhere and it is not going in the game's files.</p>
+
+  <h3>Garments that are several pieces</h3>
+
+  <p>Some clothing dresses more than the slot it sits in. Clone Commando armour is one part, in the <strong>Torso</strong> slot, and wearing it replaces your boots, legs and arms as well &mdash; and adds a backpack. Inside, that part is not one mesh but <em>five</em>, one per body region, and it takes over the other slots so nothing you had chosen shows through.</p>
+
+  <p>When you pick a part like that, the part editor says so: <strong>&ldquo;This garment is 5 pieces&rdquo;</strong>, with a row for each &mdash; BOOT, TORS, PACK, LEGS, ARMS. Every piece starts out pointing at the game's own mesh, so a freshly staged garment is the garment you picked, unchanged. Open a row to give that piece your own mesh or your own imported file.</p>
+
+  <p><strong>A piece you leave alone keeps the game's geometry.</strong> Replacing one piece of five is one row, not five. If you only want to redo the backpack, open PACK and leave the rest.</p>
+
+  <p>The parts browser marks these too: its mesh table gains a <strong>Piece</strong> column, and the header reads &ldquo;7 across 5 pieces&rdquo; rather than listing seven meshes as though they were seven body-type variants of one garment.</p>
+
+  <h3>One garment, one entry &mdash; or several parts?</h3>
+
+  <p>A garment like this is <strong>one part in one slot</strong>, so the game gives it <strong>one name and one picture</strong> however many pieces it wears. It takes over the other slots and greys them out, so those have nothing to name. The game's own Clone Commando is built exactly that way.</p>
+
+  <p>That is a choice rather than a limit, and the other option is worth knowing:</p>
+
+  <table>
+    <tr><th style="width:38%">One multi-piece part</th><th>Separate parts, one per slot</th></tr>
+    <tr><td>A single pick that dresses the whole character.</td><td>One pick each &mdash; arms, legs, boots, torso.</td></tr>
+    <tr><td>One name, one icon.</td><td>Each gets its own name and icon.</td></tr>
+    <tr><td>The other slots are locked, so it is always worn complete.</td><td>The player can mix your arms with anybody's torso.</td></tr>
+    <tr><td>Right for a suit of armour that <em>is</em> a set.</td><td>Right for pieces meant to be combined.</td></tr>
+  </table>
+
+  <p>To build the second, do not use the whole-body template at all: copy the game's own per-region parts instead &mdash; there is a separate Boots, Legs, Arms and Torso part for each armour kit &mdash; and give each one its own name, icon and mesh.</p>
+
+  <div class="note">
+    <p><strong>Give every piece the same scale and axes.</strong> A model split across several files is aligned in your modelling tool and exported from one scene &mdash; the pieces have no offset relative to each other here, so if they line up in Max they line up in game, and if they do not, they will not.</p>
+  </div>
+
+  <p>If you name a piece the template does not have, the editor says so in red and lists the pieces it does have, and the build refuses to guess &mdash; an entry aimed at nothing is never quietly applied to some other piece.</p>
+
+  <h3>Getting the game's models into Blender</h3>
+
+  <p>Before you can replace a mesh you need the original to work against &mdash; its shape, its scale, and above all its <em>rig</em>, because your model has to be weighted to bones the game already has. The <strong>Blender add-on</strong> that ships with this tool does that from inside Blender: browse the game, click an asset, and it arrives in your scene with its skeleton, its skin weights and its materials already set up.</p>
+
+  <p>Install it from <strong>Plugins</strong> in the menu bar. Point it at your Blender installation and it copies the add-on into place. Blender itself asks you to switch it on the first time &mdash; open <em>Edit &rsaquo; Preferences &rsaquo; Add-ons</em>, search for <em>Zero Company</em>, and tick it. That last step cannot be done for you; Blender keeps its list of enabled add-ons inside its own preferences file.</p>
+
+  <p>Then, in Blender, press <kbd>N</kbd> in the 3D viewport to open the sidebar and pick the <strong>Zero Company</strong> tab.</p>
+
+  <ol class="steps">
+    <li><strong>Scan Game</strong>, once. It reads what the game contains and remembers it, so the list is instant from then on.</li>
+    <li><strong>Pick a category</strong> &mdash; Characters, Weapons or Vehicles &mdash; and narrow it further by collection if you want, or just type in the search box.</li>
+    <li><strong>Import Selected.</strong> A couple of seconds later the model is in your scene.</li>
+  </ol>
+
+  <p>What arrives is the real thing: the mesh, an armature with the game's own bone names, the vertex groups that bind them, and materials with the game's textures already connected. Export your edited version as FBX and bring it back through <strong>My own mesh</strong> above.</p>
+
+  <div class="note">
+    <p><strong>Two textures come in switched off on purpose.</strong> The mask and the tint mask are loaded onto the material and left unconnected, labelled with the names the game uses for them. They pack several different things into one image, and wiring them up as though they were ordinary maps would look right and be wrong. They are there for when you know what you want from them.</p>
+  </div>
+
+  <p>Level scenery is left out of the list. It is four fifths of everything in the game, none of it is what somebody opens this to get, and the pieces are very heavy.</p>
+</section>
+
+<section id="textures">
+  <h2><span class="num">07</span>Replacing textures</h2>
+
+  <p>Open the <strong>Textures</strong> section of the part editor. It lists the textures this part actually wears, read from the mesh's own material &mdash; not a guess, and not a list of every texture in the game.</p>
+
+  <ol class="steps">
+    <li>
+      <strong>Choose a mesh first</strong>
+      The material is what names the textures, so until there is a mesh there is nothing to list.
+    </li>
+    <li>
+      <strong>Pick the slot you want to change</strong>
+      Each row shows the texture's name, its size and its format. Hover for the full details.
+    </li>
+    <li>
+      <strong>Point it at your own image</strong>
+      Press <strong>Browse</strong> on that row, then <strong>Import&hellip;</strong> to copy an image in. Leave a row alone to keep the game's own.
+    </li>
+  </ol>
+
+  <div class="trap">
+    <span class="tag">Match the shape</span>
+    <p>Keep your replacement the same dimensions as the original unless you know why you are changing them. The size and format are shown on each row precisely so you can match them.</p>
+  </div>
+</section>
+
+<section id="icons">
+  <h2><span class="num">08</span>Icons</h2>
+
+  <p>Press <strong>Browse</strong> beside the Icon field. The popup has two halves:</p>
+
+  <ul>
+    <li><strong>Your own icons</strong>, with an <strong>Import a PNG or TGA&hellip;</strong> button. That copies the file you choose into <code>ModSource/Icons</code> beside your mods, creates the folder if it does not exist, and selects it. You never have to find the folder yourself.</li>
+    <li><strong>The game's own</strong> &mdash; a grid of the actual pictures, not a list of names, filtered to the slot you are working in.</li>
+  </ul>
+
+  <p>Duplicating a part brings its icon with it, so this is optional. Change it when you have changed the look enough that the original picture would mislead.</p>
+</section>
+
+<section id="build">
+  <h2><span class="num">09</span>Building, and what the check catches</h2>
+
+  <p>One button, <strong>Build and install</strong>: the mod is built in a scratch location you never see, read back and checked, and &mdash; only if it came back clean &mdash; written into the game's Mods folder as its own mod folder. The panel says where it went. If the check fails, nothing is installed. If the game is running and holding its old copy open, the build is kept, the panel says so, and <strong>Install</strong> finishes the job once the game is closed.</p>
+
+  <p>Press <strong>Build mod</strong>. The tool writes the mod's files and then immediately reads them back out and inspects them. That read-back is not a formality &mdash; it is the difference between a mod that works and one that installs cleanly and does nothing.</p>
+
+  <h4>What it checks</h4>
+  <ul>
+    <li><strong>Unlocked for everyone.</strong> A gate inherited from the template means the player will never see the part.</li>
+    <li><strong>Offered to every character.</strong> An inherited character restriction, reported unless you said you expected one.</li>
+    <li><strong>Carries a slot tag.</strong> Without one, nothing will offer it.</li>
+    <li><strong>Registered under its own name.</strong> A part registered under another asset's name collides with it and loses &mdash; which looks exactly like a mod that never installed.</li>
+    <li><strong>Takes over everything its template does.</strong> A missing override slot means the part half-equips.</li>
+  </ul>
+
+  <div class="win">
+    <span class="tag">The gate this gives you</span>
+    <p><strong>Install is disabled unless the read-back is clean.</strong> A mod that failed its own checks cannot reach the game by that route at all. If Install is greyed out, read the line above it &mdash; it already says what is wrong.</p>
+  </div>
+</section>
+
+<section id="install">
+  <h2><span class="num">10</span>Installing and removing</h2>
+
+  <p><strong>Close the game first.</strong> A running game holds its files open and the install will fail part-way.</p>
+
+  <p>Press <strong>Install into the game</strong>. The Studio finds the game's own Mods folder, writes your mod's folder into it, and tells you where it went. Nothing belonging to the game or to another mod is touched, so your mod can sit beside anyone else's.</p>
+
+  <p><strong>Take it out</strong> removes it again, completely.</p>
+
+  <p>To look at what you just installed, press <strong>Settings &rarr; Reload game</strong> and then find it in the Assets tree under <code>Customizations/Mods/</code>. Nothing appears there until you reload, because containers are mounted at startup.</p>
+
+  <p>Before it copies anything, the Studio checks for clashes and reports them in plain terms:</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:24%">Message</th><th>Meaning</th></tr>
+    <tr><td><strong>replaces</strong></td><td>Your override deliberately replaces a game asset. That is the mechanism working, not a fault.</td></tr>
+    <tr><td><strong>CLOBBERS</strong></td><td>You are replacing a game asset that <em>no override declares</em>. This one is a real problem.</td></tr>
+    <tr><td><strong>also defined by</strong></td><td>Another installed mod defines the same package. Only one of them will apply.</td></tr>
+  </table>
+  </div>
+
+  <div class="trap">
+    <span class="tag">Two mods, one registry</span>
+    <p>If another installed mod ships its own asset registry, only one can win &mdash; and the winner has no record of the other's parts, so one mod's parts vanish entirely from the game. The install says so when it happens. Remove one, or rebuild the other after this one.</p>
+  </div>
+
+  <h3>&ldquo;Can I just drop the pak in <code>~mods</code>?&rdquo;</h3>
+
+  <p>This is the first thing most Unreal modders try, because it is how nearly every other UE5 game takes a mod. It is worth knowing exactly what happens, because the honest answer is not simply &ldquo;no&rdquo;.</p>
+
+  <p>A mod built here is a <strong>folder</strong>, and it goes in <code>SWZeroCompany\Mods\</code>. The three container files inside it are <em>part of</em> that folder &mdash; they are not a mod on their own, and pulling them out to put somewhere else takes the mod apart.</p>
+
+  <div class="trap">
+    <span class="tag">Two ways this goes wrong</span>
+    <p><strong>A lone .pak never mounts &mdash; anywhere.</strong> The <code>.pak</code>, <code>.ucas</code> and <code>.utoc</code> are one container in three files. Copy only the <code>.pak</code>, as people do out of habit from older games, and nothing loads at all. That is true in <code>~mods</code>, in <code>Content\Paks</code> and in the Mods folder alike.</p>
+    <p><strong>Two mods in <code>~mods</code> clobber each other.</strong> A mod in that older shape has to carry a copy of the <em>whole game's</em> asset registry with its own entries added, and every mod writes it to the same path. Install two and only one registry survives &mdash; so the loser's parts are completely absent from the game while its files sit there looking perfectly installed. Nothing announces it.</p>
+  </div>
+
+  <p>That second point is the whole reason for the folder. A mod in <code>Mods\</code> carries its <em>own small</em> registry inside its own folder and shares nothing with anybody, so ten can be installed at once and none can stand on another. The container is still marked <code>_P</code>, so an override still wins against the game's own files &mdash; you give up nothing by using it.</p>
+
+  <div class="note">
+    <p><strong>Tell the people who install your mod.</strong> They will reach for <code>~mods</code> too. &ldquo;Unzip the folder into <code>SWZeroCompany\Mods</code>&rdquo; is the whole instruction, and it saves the message that begins &ldquo;I installed it and nothing happened&rdquo;.</p>
+  </div>
+</section>
+
+<section id="sharing">
+  <h2><span class="num">11</span>Sharing your mod, and what that protects</h2>
+
+  <p>Once your mod is a folder somebody else can install, it is worth knowing exactly what you have handed them. The short version: <strong>the contents are readable, and nothing here changes that.</strong> Everything below is the detail behind that sentence, because a modder deciding how much work to put into a piece deserves the real answer rather than a comfortable one.</p>
+
+  <div class="trap">
+    <span class="tag">There is no way to encrypt a mod</span>
+    <p>Unreal can encrypt the containers a game ships. It works by looking up a key that was built into the game's own executable, and <em>Zero Company shipped without one</em> &mdash; nothing in the game is encrypted, so there is no key for a mod to use. A mod cannot add one either: registering a key means running code inside the game, which is exactly the kind of thing this tool exists to avoid needing.</p>
+    <p>An encrypted mod would therefore not be harder to open. It would fail to load.</p>
+    <p>And the idea does not survive even if the key existed. The game has to decrypt your mod in order to draw it, on the machine of the person you are protecting against &mdash; so the key travels with the content wherever it is kept. That is true of every game, not only this one. Free tools already read this game's files, and they will read your mod's the same way.</p>
+  </div>
+
+  <h3>What the Mod Studio does about it</h3>
+
+  <p>It refuses to be the easy path. That is a smaller claim than protection and it is the one that is actually true.</p>
+
+  <p>The studio shows every mod installed beside the game, so you can see what you have. A mod it did <strong>not</strong> build is shown with a padlock and a dimmed name, and three things are turned off for it:</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:34%">What is refused</th><th>What happens instead</th></tr>
+    <tr><td><strong>Export</strong></td><td>Those files are left out, and the panel says how many it withheld and why. Nothing is skipped silently.</td></tr>
+    <tr><td><strong>Use as a mod part</strong></td><td>The button is greyed out, with the mod's name and its author under it.</td></tr>
+    <tr><td><strong>Building from it</strong></td><td>Someone else's part cannot become the template for yours.</td></tr>
+  </table>
+  </div>
+
+  <p>Somebody determined to take your mesh will still take it, with a tool that has nothing to do with this one. What this stops is the easy version &mdash; the person who installed your mod, opened the official editor, saw your work in the tree and pressed a button. That road is short, and it is the only one anybody here can close.</p>
+
+  <div class="win">
+    <span class="tag">Your name goes with it</span>
+    <p>The <em>Author</em> field on your mod is written into the file the game reads, and the studio shows it beside your mod's assets. It prevents nothing. It does mean a piece of your work that turns up somewhere else has a name attached to it, and that somebody copying it has to actively remove that name rather than simply not think about it.</p>
+  </div>
+
+  <h3>How it knows which mods are yours</h3>
+
+  <p>Two things, and either is enough:</p>
+
+  <ul>
+    <li><strong>You installed it from here.</strong> Every install is recorded, in your own settings rather than inside the mod &mdash; a marker written into a mod folder would travel with a copy of that folder and claim to be everyone's.</li>
+    <li><strong>You have the project file.</strong> Any mod in your mods folder counts as yours, which covers one you built on another machine and brought across.</li>
+  </ul>
+
+  <div class="note">
+    <span class="tag">If your own mod comes up locked</span>
+    <p>That means this installation has neither record: no install and no project file. Open the project and install it again and it is yours from then on.</p>
+    <p>Which is the real reason to <strong>keep your project files</strong>. They are small, they are the only editable version of your mod, and a build output cannot be turned back into one.</p>
+  </div>
+</section>
+
+<section id="overrides">
+  <h2><span class="num">12</span>Overrides: changing the game's own assets</h2>
+
+  <p>An override ships a changed copy of one of the game's assets under <em>its own name</em>. This is how you unlock a hero specialisation, open up a weapon, or rename something the game already has.</p>
+
+  <p>Add one with <strong>Add override</strong>, then pick the game asset with Browse.</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:26%">Tool</th><th>What it is for</th></tr>
+    <tr><td><strong>New menu name</strong></td><td>Renames the asset as the player sees it.</td></tr>
+    <tr><td><strong>New description</strong></td><td>Replaces both the short and the long description. The game's own markup works: <code>&lt;Bold&gt;text&lt;/&gt;</code> and <code>&lt;Keyword id="UI.Keyword.ActionPoint"&gt;AP&lt;/&gt;</code> render exactly as they do on a shipped weapon.</td></tr>
+    <tr><td><strong>Remove tags</strong></td><td>Takes gate tags off. Removing a hero's name tag is what offers their specialisation to everyone. The picker lists the tags the target <em>actually carries</em>, so you cannot invent one.</td></tr>
+    <tr><td><strong>Add tags</strong></td><td>Puts tags on. Needed when removing a gate is not enough &mdash; some hero specs declare no slot tag of their own and need one added.</td></tr>
+    <tr><td><strong>Rename names</strong></td><td>Rewrites a name everywhere it appears. Blunt: <em>every</em> use changes, so only use it for a name that means one thing.</td></tr>
+    <tr><td><strong>Add a property it does not have</strong></td><td>Creates a tag container the asset never carried. Everything else here edits something already present; this writes something new.</td></tr>
+    <tr><td><strong>Re-point a name</strong></td><td>Points references at a different name, with a count you predict. A soft object reference is <em>two</em> names &mdash; the asset path and the object name &mdash; so pointing one elsewhere usually needs two rows.</td></tr>
+  </table>
+  </div>
+
+  <div class="why">
+    <span class="tag">The rule that makes overrides work</span>
+    <p>The game keeps <em>two</em> copies of a part's tags: one in the asset itself, one in an index written when the game was built. The menu reads the <strong>display name from the asset</strong> and <strong>availability from the index</strong>. Change only the asset and you get a renamed part that is still locked. The Studio edits both for you &mdash; but it is why an override that &ldquo;looks right&rdquo; can still do nothing, and why the build's own comparison is worth reading.</p>
+  </div>
+</section>
+
+<section id="numbers">
+  <h2><span class="num">13</span>Changing the numbers: balance mods</h2>
+
+  <p>Damage, range, critical chance, overwatch arc, reaction damage &mdash; every number on every weapon lives in a plain data table that the game reads while it is running. No Unreal, no Blueprint graph, no bytecode. A balance mod is a handful of edited numbers in a table, and the Studio can change any of them.</p>
+
+  <h3>Getting there</h3>
+
+  <p>Open a weapon in the <strong>Parts</strong> tab. Under <em>Weapon specialisation</em> you get its attribute table, and beneath that a button: <strong>Edit these numbers in a mod</strong>. That adds an override for the table to whichever mod you have open and drops you into the Mod tab with every row editable.</p>
+
+  <p>The <em>New value</em> box is yours. The <em>Game</em> column beside it is what the game ships, and it stays there while you work &mdash; an editor that shows only what you typed cannot answer &ldquo;what was it before?&rdquo;, which is where every balance change starts.</p>
+
+  <p>Rows you do not touch are not shipped at all. Typing a value back to the game's own removes it again, so a mod only ever carries the numbers you actually changed.</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:28%">What you see</th><th>What it means</th></tr>
+    <tr><td>A row in <strong>green</strong>, with a <strong>reset</strong> button</td><td>You have changed it. Reset puts it back and drops it from the mod.</td></tr>
+    <tr><td>A row marked <strong>unset</strong></td><td>The game ships it as zero, and a zero is not written into the file at all. You can still give it a value &mdash; the Studio adds the property back for you &mdash; it is simply a larger edit than changing one.</td></tr>
+    <tr><td>The <strong>Min</strong> and <strong>Max</strong> columns</td><td>Annotation, not limits. Rex's DC-17 ships a critical damage of 8 against a declared maximum of 2, so the Studio does not hold you to them either.</td></tr>
+  </table>
+  </div>
+
+  <h3>What the game actually reads</h3>
+
+  <p>It reads the table. This is worth stating plainly because it is the one thing that makes the whole feature possible, and it was established the only way it could be &mdash; by shipping a mod and looking. Set a repeater's base damage to 88 and the armoury shows 90, the extra two coming from an attachment fitted to that weapon. Your number goes in at the bottom and the game's own modifiers stack on top, which is exactly what you want: the number you type is the number the game starts from.</p>
+
+  <div class="trap">
+    <span class="tag">One table can belong to several weapons</span>
+    <p>A table is named for a weapon <em>type</em>, not for a character. <code>Attributes_RangedWeap_BlasterPistol_Default</code> is the standard-issue pistol for everyone who carries one; Rex's DC-17 has its own. Before you change a number, look at which table you are in &mdash; the Studio shows its name above the rows &mdash; because &ldquo;buff the pistol&rdquo; and &ldquo;buff <em>my</em> pistol&rdquo; are different tables.</p>
+  </div>
+
+  <h3>Renaming, and saying what you changed</h3>
+
+  <p>A rebalanced weapon that still calls itself by the stock name and describes itself with the stock text is only half a mod. Both are on the same override, in <strong>New menu name</strong> and <strong>New description</strong>, and both work in game.</p>
+
+  <p>They are worth a note, because what you are editing is not what you might expect. A display name is not a string stored on the part &mdash; it is a <em>reference</em> to an entry in a shared string table, which is then looked up again in the game's translation file. Two indirections away from the asset anybody would think to edit. The Studio sidesteps both by replacing the whole thing with a literal, so your text is shown as written and no translation can override it. You do not have to do anything about that; it is just why the name in the file and the name on screen are not obviously the same thing.</p>
+
+  <div class="win">
+    <span class="tag">The markup works</span>
+    <p>Descriptions accept the game's own rich text. <code>&lt;Bold&gt;Base Damage&lt;/&gt;</code> comes out bold, and <code>&lt;Keyword id="UI.Keyword.ActionPoint"&gt;AP&lt;/&gt;</code> comes out as a keyword link, exactly as on a weapon the game shipped. ASCII only.</p>
+  </div>
+
+  <h3>Abilities</h3>
+
+  <p>Under the stats, a weapon lists the abilities it grants &mdash; its standard shot, its overwatch, whatever else it can do. Click one and the Studio opens that asset, so you can see what it is before deciding whether it is the thing you actually want to change.</p>
+</section>
+
+<section id="specs">
+  <h2><span class="num">14</span>Making a specialization</h2>
+
+  <p>A specialization is the class a recruit is &mdash; Assault, Scout, Padawan. It is a part in exactly the sense everything else here is a part, and it has no mesh whatsoever. What it has instead is a name, an icon, a few abilities granted outright, a starting gear kit, and a <strong>focus tree</strong>: three lines of ability tiers, seventeen rungs in all, which is what a player spends focus climbing.</p>
+
+  <p>Making one is the same loop as everything else. Open the <strong>Specs</strong> tab, find the specialization closest to what you want, and press <strong>Duplicate into a mod</strong>. All of it comes across &mdash; every ability, every rung, the gear kit &mdash; and you change the parts you want different. It arrives in whichever mod you have open, and the Studio takes you straight to it.</p>
+
+  <div class="why">
+    <span class="tag">Copy the closest one, not the simplest one</span>
+    <p>Your copy inherits everything you do not change, so the template is doing most of the work. Start from the specialization whose <em>tree shape and theme</em> are nearest your idea, not from whichever one you happen to know best. A Force-flavoured class built on Padawan needs three edits; the same thing built on Assault needs seventeen.</p>
+  </div>
+
+  <h3>What you can change</h3>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:26%">Field</th><th>What it does</th></tr>
+    <tr><td><strong>Asset name</strong></td><td>What the file is called. Never shown to a player, but it must be unique across every mod installed &mdash; see the traps below.</td></tr>
+    <tr><td><strong>Menu name</strong></td><td>What the picker shows. A duplicate arrives called &ldquo;Assault copy&rdquo; so you can tell the two apart before you have renamed it.</td></tr>
+    <tr><td><strong>Description</strong></td><td>Replaces both the short and the long description. The game's own markup works: <code>&lt;Bold&gt;text&lt;/&gt;</code>, and keyword links.</td></tr>
+    <tr><td><strong>Icon tag</strong></td><td>A specialization names its icon by <em>tag</em>, not by path &mdash; <code>ImageBank.Icon.Class.Assault</code>. Any tag the game already has will do. A few specializations name a texture directly instead; if yours is one, the build says so rather than changing nothing quietly.</td></tr>
+    <tr><td><strong>Only for</strong></td><td>Blank means anyone can pick it, which is what you almost always want. Name a character to hand the class to just them.</td></tr>
+    <tr><td><strong>Identity tag</strong></td><td>The tag that <em>is</em> this specialization. Leave it alone unless you have a reason &mdash; see below.</td></tr>
+    <tr><td><strong>Granted outright</strong></td><td>The abilities a recruit gets on taking the class, without spending anything.</td></tr>
+    <tr><td><strong>Gear kits</strong></td><td>What they start holding.</td></tr>
+    <tr><td><strong>Every rung of the tree</strong></td><td>Each of the seventeen slots can grant a different ability.</td></tr>
+  </table>
+  </div>
+
+  <h3>What it will not do, and tells you so</h3>
+
+  <p>Two things are fixed by the specialization you copied, and the build reports them rather than quietly ignoring them:</p>
+
+  <ul>
+    <li><strong>The number of entries.</strong> You can change what an ability is, but not add a fourth granted ability or remove a rung. Those lists are a fixed length in the file, and growing one means rebuilding the asset rather than editing it.</li>
+    <li><strong>A rung's level and focus cost.</strong> The editor shows them so you can see the shape of the tree you are working in; they are numbers buried inside the tree's own structure and are not reachable yet.</li>
+  </ul>
+
+  <h3>Choosing an ability</h3>
+
+  <p>Every ability slot and every rung is a searchable list of all 826 abilities in the game, with the family each belongs to shown beside it. Pick one and the Studio writes the reference correctly.</p>
+
+  <div class="win">
+    <span class="tag">This is why it is a list and not a text box</span>
+    <p>An ability reference is a full path, and the folder in it is not the one anybody would guess. <code>GA_Firestorm</code> lives under <em>Gunslinger</em> and <code>GA_BullRush</code> under <em>Soldier</em> &mdash; while the <em>Assault</em> specialization grants both of them. Typing these out from memory gets them wrong. If you do need something the list cannot reach, the full path is still editable at the bottom of the same panel.</p>
+  </div>
+
+  <h3>Tiers have to match, and that part is on you</h3>
+
+  <p>A line of the focus tree is a ladder of the same ability getting stronger: <code>GA_Firestorm_T1</code> through <code>T6</code>. Replace all six with the six tiers of something else and it works. Replace one rung of six with a <em>single-tier</em> ability &mdash; most hero abilities are single-tier &mdash; and the remaining five rungs still grant the old one. Nothing is broken; it simply is not what you meant.</p>
+
+  <div class="trap">
+    <span class="tag">Rex and Anakin cannot be duplicated into a usable class</span>
+    <p>Their kits have <strong>no focus tree at all</strong> &mdash; zero lines, zero rungs. The picker draws a three-line tree and will not offer a specialization that cannot fill one, so a copy of a hero kit never appears however open you make its tags. Three separate attempts went into removing gates before that was measured. The Specs tab shows the rung count for exactly this reason: if it says zero, stop.</p>
+    <p>What <em>does</em> work is the other direction &mdash; put a hero's abilities into a copy of a real class. That is how &ldquo;Jedi Knight&rdquo; got made: Padawan's tree carrying Anakin's four abilities.</p>
+  </div>
+
+  <div class="note">
+    <span class="tag">A hero's class is unlocked for you</span>
+    <p>Hero specializations carry their owner's name tag, and a plain copy would inherit it &mdash; giving you a brand-new class that only Tel-Rea can choose. Duplicating drops that tag, from both the asset and the record the menu actually filters on. Leaving <em>Only for</em> blank is all you have to do.</p>
+  </div>
+
+  <div class="why">
+    <span class="tag">Why the identity tag stays the same</span>
+    <p>A duplicate keeps its template's identity tag, which looks like a mistake and is not. A specialization sharing that tag has been built, shipped and played: it appeared in the picker and the game's own recruit generator started rolling it onto new recruits. A freshly invented tag is one the game's tag table does not define, and nothing outside Unreal can register it &mdash; so it may simply resolve to nothing. <strong>Make it its own</strong> is there if you want to try; it is not the default because the default is the thing that is known to work.</p>
+  </div>
+
+  <div class="note">
+    <span class="tag">There is no picker list to add yourself to</span>
+    <p>The game finds specializations by their slot tag in the asset record, not from a list of the eight it ships. Build one correctly and it is offered &mdash; and the recruit generator treats it as a first-class member of its own pool, which means recruits will turn up already wearing your class. Whether that is what you wanted is a design decision; it is not something that can currently be separated.</p>
+  </div>
+</section>
+
+<section id="weapons">
+  <h2><span class="num">15</span>Making a weapon</h2>
+
+  <p>A weapon is not one asset. The Armoury lists a part; that names a gear kit, which names the weapon actor, which names the loadout, which names a <em>type</em> part carrying the weapon&rsquo;s tag &mdash; and that tag is what picks the weapon&rsquo;s meshes out of palettes shared by every weapon in the game. Five files and <strong>five</strong> mesh palettes, and on disk nothing says they belong together. The <strong>Weapons</strong> tab shows a weapon as one weapon, and does the copying for you.</p>
+
+  <p>Open the tab, pick the weapon closest to what you want, and press <strong>Duplicate into a mod</strong>. Every link is copied under your mod&rsquo;s name and re-pointed at the others, a palette copy is made for each slot the weapon has a piece in, and the copy is routed onto a weapon class of its own. It arrives in whichever mod you have open. <strong>Nothing of the game&rsquo;s is written over</strong>: the weapon you copied keeps every part it has, and yours stands beside it.</p>
+
+  <div class="win">
+    <span class="tag">It gets its own shelf</span>
+    <p>A duplicate is not squeezed in beside the game&rsquo;s own weapons of that class. It goes onto a <strong>Custom Longarm</strong>, <strong>Custom Rifle</strong>, <strong>Custom Pistol</strong> or <strong>Custom Repeater</strong> shelf, defined by a small mod called <em>Custom Weapon Classes</em> that this tool ships and installs for you the first time you need it. You can also give a weapon <strong>a shelf of its own</strong>, with a name you choose &mdash; &ldquo;Bob&rsquo;s Heavies&rdquo; sits in the class list like any of the game&rsquo;s.</p>
+    <p>It also keeps your weapons out of the game&rsquo;s own lists, which is tidier for anyone who installs your mod: their Longarm shelf still holds the four the game shipped.</p>
+  </div>
+
+  <div class="note">
+    <span class="tag">A long list sometimes draws a blank row, and it is not your mod</span>
+    <p>Once a weapon class holds eight or so, the Armoury will occasionally draw one row with <strong>no name and no picture</strong>. It is still selectable, and it still works. Scroll, or leave the screen and come back, and it will be a <em>different</em> row &mdash; or none.</p>
+    <p>That is the game&rsquo;s own list reusing its row widgets: a row fades itself in with an animation, and one that gets reused without replaying it stays invisible. It happens on the game&rsquo;s own weapon classes too, with no mods installed past the count. <strong>Nothing in your mod causes it and nothing in your mod can fix it</strong> &mdash; the tool says so at build time rather than letting you hunt for a fault that is not yours.</p>
+  </div>
+
+  <h3>The choice that decides everything else: its type</h3>
+
+  <p>Every weapon carries a <strong>type tag</strong>, and that tag is the key its meshes are stored under in the palettes. You get one decision, and the rest of this section follows from it.</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:30%">Choice</th><th>What follows</th></tr>
+    <tr><td><strong>Keep the donor&rsquo;s type</strong><br><em>(the default)</em></td><td>All twenty-one of the game&rsquo;s attachment pieces answer for your weapon, positioned for the gun you copied. Fitting a scope shows that scope. Right for a <strong>plain duplicate</strong> &mdash; a re-skin, a re-balance, a rename.</td></tr>
+    <tr><td><strong>A type of its own</strong></td><td>Nothing of the game&rsquo;s answers to it. Every slot you have not filled yourself renders <strong>nothing</strong>. Right for a gun you <strong>modelled whole</strong>, where the game&rsquo;s barrels and stocks would be wrong on it anyway.</td></tr>
+  </table>
+  </div>
+
+  <p>The panel says which you are on, in words, with one button to switch. You can change your mind at any time.</p>
+
+  <div class="why">
+    <span class="tag">Why this used to go wrong</span>
+    <p>The first DLT-20A turned up in game wearing another rifle&rsquo;s barrel, sticking out of its own. That is the donor&rsquo;s type working exactly as designed on a model that already had a barrel built into it. The opposite mistake &mdash; minting a type and expecting the game&rsquo;s scopes to fit &mdash; produces attachments that vanish the moment they are equipped. Both were measured in game, both ways.</p>
+  </div>
+
+  <h3>Attachments: all twenty-one of them</h3>
+
+  <p>Select the armoury copy and scroll to <strong>Attachments</strong>. Every piece your weapon can appear as is listed, grouped by slot:</p>
+
+  <pre><code>BARREL   01 Default   02 Condenser  03 Amplifier  04 RapidCycler  05 PhaseAdjuster
+BASE     01 Default
+CELL     01 Default   02 Ion        03 Shock      04 Ignition     05 HighPowered
+SCOPE    01 Default   02 LongRange  03 Precision  04 Targeting    05 Tracking
+STOCK    01 Default   02 Lightweight 03 Balanced  04 Bracing      05 Ergonomic</code></pre>
+
+  <p>The <strong>01</strong> of each slot is what the gun shows with nothing fitted. The other four appear only when a player fits that modification. Beside each one the list says <strong>its own</strong> or <strong>shared</strong>, and that word is the most useful thing on the row.</p>
+
+  <div class="trap">
+    <span class="tag">Imported your own gun? The attachments will not fit it</span>
+    <p>Keeping the donor&rsquo;s type means the game&rsquo;s twenty-one attachment pieces answer for your weapon &mdash; but <strong>every one of them was modelled and positioned for the gun you copied</strong>. On a re-skin that is exactly right. On a weapon whose mesh you have <em>imported</em>, it is not: the scope will sit where the donor&rsquo;s scope sat, which on your model may be floating beside the barrel, buried inside it, or facing the wrong way.</p>
+    <p>Nothing warns you, because nothing is wrong &mdash; the game is fitting the piece it was told to fit. <strong>If you import a weapon mesh, plan on replacing the attachment meshes too</strong>, or on positioning yours so the donor&rsquo;s pieces land where they should. <em>Use my own</em> on each attachment row is where that is done; there are twenty of them if you want the full set, and you can do as few as you like &mdash; the ones you leave alone keep the donor&rsquo;s.</p>
+  </div>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:22%">Column says</th><th>What it means</th></tr>
+    <tr><td><strong>its own</strong></td><td>The <code>01</code>s. This piece has the weapon&rsquo;s <em>own</em> material and its own textures &mdash; nobody else uses them.</td></tr>
+    <tr><td><strong>shared</strong></td><td>The <code>02</code>&ndash;<code>05</code>s. <strong>One material and one texture set for every gun in the game.</strong> Only the <em>mesh</em> is per-weapon &mdash; and the mesh is what carries the position, which is why every gun has its own copy of each attachment even though they all look the same.</td></tr>
+  </table>
+  </div>
+
+  <div class="win">
+    <span class="tag">Painting a shared one is still safe</span>
+    <p>Your mod copies the material and the textures into its own folder and points its own mesh at the copies. The game&rsquo;s <code>Mods_SharedElements</code> is never written to, so every other weapon keeps the paint it had. You should know a piece is shared before you paint it &mdash; that is what the column is for &mdash; but you are not going to break anybody else&rsquo;s gun by doing it.</p>
+  </div>
+
+  <h4>What the buttons do</h4>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:22%">Button</th><th>What it does</th></tr>
+    <tr><td><strong>Use my own</strong></td><td>Takes the slot and drops you into the mesh editor to put your FBX and textures in. For an <code>01</code> it re-points your own palette copy; for the others it adds an entry to the game&rsquo;s palette under your weapon&rsquo;s tag, leaving every other weapon&rsquo;s alone.</td></tr>
+    <tr><td><strong>Empty it</strong></td><td>Only on an <code>01</code>. The slot shows nothing. This is what a one-piece model needs &mdash; see below.</td></tr>
+    <tr><td><strong>Edit</strong> / <strong>Give back</strong></td><td>Go to the mesh, or hand the slot back to the game. Giving back keeps your mesh entry if there is an FBX or textures in it, and says so.</td></tr>
+  </table>
+  </div>
+
+  <h3>One model, or several? &mdash; and you must pick one</h3>
+
+  <p>This is the part that costs people an evening, so it is worth being blunt about.</p>
+
+  <h4>If you model the whole gun as one piece</h4>
+
+  <p>Put it in <strong>Base 01</strong> and <strong>empty every other <code>01</code> slot</strong> &mdash; Barrel, Stock, Cell, Scope, whichever your model already contains. Otherwise the weapon you copied lends you <em>its</em> barrel on top of the one you modelled, and you get both.</p>
+
+  <p>Emptying happens inside your mod&rsquo;s own copy of that palette. The original weapon keeps all of its parts.</p>
+
+  <h4>If you split the model into its slots</h4>
+
+  <p>Model the receiver, barrel, stock and scope as separate objects <strong>in one scene, positioned where they belong on the finished gun</strong>, and export each one. Each goes into its own slot with <em>Use my own</em>. The game assembles them the way it assembles its own weapons.</p>
+
+  <ol class="steps">
+    <li>
+      <strong>Export them all from the same scene</strong>
+      They must share one origin and one scale. Each mesh carries its own position &mdash; there is no offset field anywhere &mdash; so alignment is done in your modelling tool, and only there.
+    </li>
+    <li>
+      <strong>Do not export the pieces separately from different scenes</strong>
+      They will land in the right slots at the wrong places, and nothing in the tool can tell you which one moved.
+    </li>
+    <li>
+      <strong>Check the centres, not the sizes</strong>
+      The build prints, for every piece, where it ended up against where the game puts its own. Matching <em>centres</em> means it is aligned. A different <em>size</em> is expected and fine &mdash; your barrel is not the donor&rsquo;s barrel.
+    </li>
+  </ol>
+
+  <pre><code>barrel centre  (0.00, 47.06, 7.24)   against the game's  (-0.00, 47.13, 7.30)
+                                                        aligned
+
+size 6.0 x 61.8 x 6.0 cm  against the game's 4.4 x 75.6 x 10.1 cm  (0.598x)
+                                                        expected, not a fault</code></pre>
+
+  <div class="trap">
+    <span class="tag">Splitting has a cost, and it is the type tag again</span>
+    <p>With a <strong>type of its own</strong>, a split model turns two harmlessly empty slots into eight that must each be filled. Your barrel is in Barrel&nbsp;01, so it shows by default &mdash; but fit a Condenser and the slot points at the <em>game&rsquo;s</em> Barrel 02 palette, which holds no entry for your weapon, and <strong>the barrel is not drawn at all</strong>. With the barrel welded into the body that never happened, because the body always shows.</p>
+    <p><strong>Leaving them blank is a finished answer, not an unfinished one.</strong> A modification&rsquo;s stats live on the modification, never on the mesh, so a player who fits a Condenser still gets everything it does &mdash; the gun simply does not change shape. Fill a slot only when you want that piece to be <em>seen</em>. The list counts them for you: <em>&ldquo;8 of 21 yours, 13 left blank&rdquo;</em>, and says the same thing above the rows.</p>
+    <p>If you do want them all, it is four more meshes per slot, each positioned for your gun.</p>
+  </div>
+
+  <div class="trap">
+    <span class="tag">The scale on your FBX is not always right</span>
+    <p>A mesh exported from a modelling tool carries a scale on its own node, and it is not always the one the game uses. If a piece comes out wildly wrong the build <strong>refuses the import</strong>, ships the game&rsquo;s mesh instead of yours, and says what the file claims and what the game measures. Read that line: it names the number to set in <strong>Mesh scale</strong>.</p>
+    <p>What it also offers &mdash; <em>&ldquo;a scale of 188.313 would match its height exactly&rdquo;</em> &mdash; is right for one mesh replacing one mesh and <strong>wrong for a set</strong>. Taking that number for each piece of a split gun scales four pieces by four different amounts and pulls the model apart. For a set, one scale for all of them, and check the centres.</p>
+  </div>
+
+  <h3>What you can change</h3>
+
+  <p>Select the copy in the Mod tab. The one that matters is under <em>Duplicated assets</em>, marked <em>the name in the armoury</em>; the others are plumbing, listed so the mod is honest about its contents.</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:26%">Field</th><th>What it does</th></tr>
+    <tr><td><strong>Name in menu</strong></td><td>What the Armoury shows. Typing it in one place writes it everywhere the game keeps it &mdash; the armoury row, the model part, and the <strong>&ldquo;MODEL:&rdquo;</strong> header above the stats, which is a different asset again and used to keep saying the name of the weapon you copied.</td></tr>
+    <tr><td><strong>Its numbers</strong></td><td>Damage, range, critical chance and the rest, <strong>for this weapon alone</strong>. Press <em>Give it numbers of its own</em>. Without it a duplicate shares its kind&rsquo;s table with every other weapon of that kind &mdash; the game&rsquo;s included &mdash; so changing a number there changes theirs too. The panel says which of the two you are on.</td></tr>
+    <tr><td><strong>Icon in the armoury</strong></td><td>The picture beside the name. <strong>Browse</strong> shows every icon the game has, as pictures, with the current one outlined. <strong>My own picture</strong> takes a PNG or TGA of yours &mdash; 512 by 256 &mdash; and writes it into the armoury part the way the game&rsquo;s own DC-17m part carries its picture.</td></tr>
+    <tr><td><strong>Description</strong></td><td>Only where the weapon you copied carries one. The armoury parts the game ships hold a name and nothing else, so for them the editor says so instead of offering a box.</td></tr>
+    <tr><td><strong>Rename the weapon&rsquo;s assets</strong></td><td>A duplicate arrives with every file named after the id it was made with. Type a new name and the Studio lists every name that would change, then changes all of them together, links included. The name in the menu is separate.</td></tr>
+    <tr><td><strong>Rename names</strong></td><td>The escape hatch, for a name this editor has no field for. The rows already there are what point the copy at your mod&rsquo;s own assets &mdash; they are locked, and the tooltip says why.</td></tr>
+  </table>
+  </div>
+
+  <div class="note">
+    <span class="tag">The icon is a tag, and that is why it is a picker</span>
+    <p>The game does not store a picture on the weapon. It stores a tag &mdash; <code>ImageBank.Icon.Weapon.DC15A</code> &mdash; and one of eight shared <em>image banks</em> turns the tag into a texture when the Armoury draws. So &ldquo;change the icon&rdquo; means &ldquo;change the tag to one a bank defines&rdquo;, and Browse is the list of those.</p>
+    <p>A picture of your own does not go through a bank at all. The game never reads a bank a mod ships &mdash; that was measured: every tag of a mod&rsquo;s own drew the game&rsquo;s stand-in picture &mdash; so the Studio does what the DC-17m part does instead, and names a texture built from your pixels.</p>
+  </div>
+
+  <h3>What it will not do yet</h3>
+
+  <ul>
+    <li><strong>Simplify with distance.</strong> There is no reducer: your model goes into all three levels of detail unchanged. Fine for a weapon; it does mean a very heavy model is heavy at every range.</li>
+  </ul>
+
+  <div class="trap">
+    <span class="tag">Some weapons cannot be duplicated, and the tab says which</span>
+    <p>The tab lists all 39 and can copy 21. The rest &mdash; enemy variants, mostly &mdash; share another weapon&rsquo;s actor or loadout and have no chain of their own to copy. That is how the game is built, not a fault; untick <em>Only ones I can duplicate</em> to see them, and the panel names the link each one lacks.</p>
+  </div>
+</section>
+
+<section id="mods">
+  <h2><span class="num">16</span>What attachments do: changing a modification</h2>
+
+  <p>The barrels, cells, scopes and stabilizers a player buys in the Black Market and fits in the Armoury. There are 64 of them &mdash; four styles per slot, four tiers per style &mdash; and what each one <em>does</em> is a single number on its ability asset. <strong>Attachments &rarr; What attachments do</strong> lists all 64 with that number beside them.</p>
+
+  <p>This is a different thing from the attachment list on a weapon you duplicated, in section 15. That one decides which <em>piece</em> appears on the gun when a modification is fitted. This one decides the +2 Critical Hit Damage.</p>
+
+  <h3>Changing one</h3>
+
+  <p>Type in the box. The faint number to its right is the game&rsquo;s own, and <em>reset</em> puts it back; setting a box back to the game&rsquo;s value by hand removes the change rather than shipping &ldquo;2 becomes 2&rdquo;. <em>Put them all back</em> clears the lot.</p>
+
+  <p>Percentages are typed as percentages. A chance stored as <code>0.06</code> shows as <strong>6.0%</strong> and you type <strong>15</strong> for fifteen per cent. Which numbers are fractions is read from the game&rsquo;s own data, not guessed from the size of the value.</p>
+
+  <p>Nothing here uses a modification up: it keeps its icon, its cost and its place in the Black Market.</p>
+
+  <h3>Its name, and what it says</h3>
+
+  <p><strong>Click a modification&rsquo;s name</strong> and a panel opens under it with what the Black Market calls it and the sentence under that. Leave a box empty to keep the game&rsquo;s own, which is the grey text inside it. The list above updates to the name you gave, because that is what a player will see.</p>
+
+  <p>The description takes the game&rsquo;s own rich text &mdash; <code>&lt;Bold&gt;text&lt;/&gt;</code> and <code>&lt;Keyword id="UI.Keyword.CriticalHit"&gt;Critical Hit Damage&lt;/&gt;</code> &mdash; and it takes <code>{effectDescription_1}</code>, which the game fills in with the number you set above. Keep that in and the sentence stays true after you change the stat.</p>
+
+  <p>The same panel sets <strong>how rare</strong> it is &mdash; Common, Uncommon, Rare or Unique, which is what the Black Market uses to decide how it presents and stocks the modification &mdash; and what it <strong>costs and sells for</strong>, in credits. The two prices sit side by side because they are set against each other: a modification that sells for more than it costs is a credit press.</p>
+
+  <div class="note">
+    <span class="tag">A modification is two assets, so this is two overrides</span>
+    <p>What it <em>does</em> lives on an ability; what it is <em>called</em> and what it costs live on a separate shop item, joined to the ability by name. The Studio edits them independently &mdash; change only the number and only the ability is touched &mdash; which is why the count beside <strong>What attachments do</strong> can go up by two when you change one modification completely.</p>
+  </div>
+
+  <h3>Second numbers</h3>
+
+  <p>Some modifications carry more than one. The Ion Modulator has a separate bonus against Ray Shields; the Balancing and Ergonomic stabilizers put a cap on the bonus they stack up. Those appear indented under the tier they belong to, labelled with the name the asset gives them. The description above the group says where each lands: it is the <code>{effectDescription_2}</code> in the sentence.</p>
+
+  <h3>Tiers that say &ldquo;inherited&rdquo;</h3>
+
+  <p>Four of the 64 do not carry the main number at all &mdash; Balancing T2 and T3, Ergonomic T2 and T3. They use the tier below&rsquo;s and raise only their cap, and a cooked file does not write a value that has not changed. Nothing is wrong with them.</p>
+
+  <p>Press <strong>Give it one</strong> and the mod adds the property rather than writing over it, starting at the value the tier is using now. It is a larger edit than the others, which is why it is a button rather than a box.</p>
+
+  <div class="note">
+    <span class="tag">One asset, every weapon</span>
+    <p>A modification is a single asset that every gun in the game reads. Change the Single Coil Condenser and it is changed for your weapons and for the game&rsquo;s alike, on every save. That is usually the point of a balance mod; it is worth knowing before you halve something.</p>
+    <p>It also means two mods that edit the same modification collide, and the build&rsquo;s clash check says so at install time.</p>
+  </div>
+
+  <div class="trap">
+    <span class="tag">The build proves the number, and you should read the line</span>
+    <p>The build log says <em>&ldquo;2 &rarr; 12, reads back 12 as a double at byte 1980&rdquo;</em>, and then again after the container is mounted: <em>&ldquo;its numbers read back: GameplayEffectModifer = 12&rdquo;</em>. Both are the asset being read, not the tool repeating its own intention &mdash; a stat is stored as an eight-byte number whose upper half looks exactly like a four-byte one, and an earlier version of this wrote into the middle of it, reported success, and produced 134,217,728.</p>
+  </div>
+</section>
+
+<section id="recruits">
+  <h2><span class="num">17</span>Making a recruit out of an enemy</h2>
+
+  <p>The game fights you with battle droids and never lets you have one. You can hand one to the player: a B1, a B2 or a BX commando who joins the company, carries his own weapon, moves in his own animations and takes his turn like anyone else. None of it needs UE4SS, and none of it touches an asset the game ships.</p>
+
+  <p>Start on the <strong>Recruits</strong> tab. It lists the roster the game hires from, and every character the game has. Pick the enemy you want and press <strong>Add</strong>: the Studio copies what he is made of into your mod, gives him a name you can change, and opens his page. Everything after that is the boxes on that page.</p>
+
+  <h3>The boxes, and what each one is really for</h3>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:34%">Box</th><th>What it does</th></tr>
+    <tr><td><strong>Spawn on a pawn of the mod's own</strong></td><td>Ships a copy of the enemy's own pawn and points your character at it. Without this he is built on a hero's body and stands like a human. <strong>Leave this on.</strong></td></tr>
+    <tr><td><strong>Also ship a weapon for the Armoury</strong></td><td>A blaster in the Armoury that carries this droid's animation tables and his stance clips. Equip it on him and he aims, turns and fires as himself.</td></tr>
+    <tr><td><strong>List only their own gun in it</strong></td><td>Without this, that blaster is a copy of the rifle class and lists every rifle in the game. With it, the class holds one weapon: the gun the droid's own kit carries, made equippable, with the shot animation and the tags his cinematics ask for.</td></tr>
+    <tr><td><strong>Also carry their own tactical spec in a spare slot</strong></td><td><strong>This is what gives him action points.</strong> An enemy's move and turn basics ride on his tactical specialization, and the hiring pool throws that away. A spare slot is one the hiring pool never touches, and a part still applies from there.</td></tr>
+    <tr><td><strong>Keep their own tactical spec</strong></td><td>The same specialization in its proper slot. Right for a character who joins by story recipe and never goes through the pool; on a hired recruit the pool replaces it, which is why the spare slot exists.</td></tr>
+    <tr><td><strong>Keep their own class, tactical spec, weapon spec and gear kit</strong></td><td>All four as copies made legal for a recruit. Off by default: made legal, they become candidates for <em>everyone</em>, and droid weapons start appearing in the hiring offers of your human squad.</td></tr>
+  </table>
+  </div>
+
+  <div class="why">
+    <span class="tag">The four boxes that work</span>
+    <p>Pawn, weapon, only their own gun, and the tactical spec in a spare slot. That combination is confirmed in a real campaign: action points, his own animations, his own gun, and the Armoury offering that gun to him and to nobody else. Add a box beyond those four only to see what it does.</p>
+  </div>
+
+  <h3>Separatists do not appear on the mission-ready screen</h3>
+
+  <p>Your droid plays normally and shows up everywhere else, but the squad-select screen before a mission draws him as nothing at all. That screen does not show your characters the way the battlefield does: it renders a hologram, and the hologram is one fixed actor with a human body, with each character's customization applied on top of it. A droid's body is not in his customization &mdash; it is on his own pawn, on a skeleton that actor cannot wear &mdash; so there is nothing for it to draw.</p>
+
+  <p>It is cosmetic. He deploys, he fights, and he is on the field when the mission starts. Nothing in a mod reaches that screen, because the proxy it uses is a single asset the game picks by itself.</p>
+
+  <h3>Joining without being hired</h3>
+
+  <p>There is a second route, and it is unfinished. A campaign <em>recipe</em> can add a character outright, the way the story adds one, and a character who arrives that way never goes through the hiring pool and never has his class or weapon rolled away. The Studio can build it &mdash; a pawn class of your own, a copy of a story recruit recipe, and the recipe written into every chapter's arc &mdash; but no campaign has been played through on a sound build to confirm it, so it is off and out of the way under <strong>Advanced &rarr; Labs</strong>. Turn it on there if you want to try it, and expect to end a cycle in chapters two to six before anyone joins.</p>
+</section>
+
+<section id="traps">
+  <h2><span class="num">18</span>Traps that cost real hours</h2>
+
+  <ul>
+    <li><strong>Ids must be unique across installed mods.</strong> Not just within your mod. Two mods sharing an id cook to the same package path and one silently wins.</li>
+    <li><strong>A helmet that does not hide the head</strong> renders the character's face and hair through the visor.</li>
+    <li><strong>A mesh path without its <code>.AssetName</code> suffix</strong> imports as an empty pointer, and the part equips nothing at all.</li>
+    <li><strong>&ldquo;Restriction expected&rdquo; does not restrict anything.</strong> It only tells the checker what you meant.</li>
+    <li><strong>Edition and story gates travel with a copy.</strong> A development gate does not. If the build says your part is gated, it will not appear no matter how correct everything else is.</li>
+    <li><strong>Close the game before installing.</strong> Every time.</li>
+    <li><strong>Read the build log when something is odd.</strong> It reports what it changed, and the comparison names anything that changed which you did not ask for.</li>
+  </ul>
+
+  <h3>Weapons</h3>
+
+  <ul>
+    <li><strong>A weapon model that already has a barrel needs the barrel slot emptied.</strong> Otherwise the weapon you copied lends you its own and you get two. Section 15.</li>
+    <li><strong>A split model must come out of one scene.</strong> Each piece carries its own position &mdash; there is no offset field &mdash; so aligning them is done in your modelling tool and nowhere else.</li>
+    <li><strong>Compare centres, not sizes.</strong> The build prints both. A piece of yours being a different size from the one it replaces is expected; a different <em>centre</em> is the misalignment.</li>
+    <li><strong>&ldquo;A scale of N would match its height exactly&rdquo; is advice for one mesh, not for a set.</strong> Following it per-piece scales a split gun by a different number each time and pulls it apart.</li>
+    <li><strong>A type of its own means blank slots, not the donor&rsquo;s parts.</strong> Thirteen of twenty-one, on a typical weapon &mdash; and blank costs you nothing: the modification still gives its stats, the gun just does not change shape.</li>
+    <li><strong>A blank-but-selectable row in a long weapon list is the game&rsquo;s, not yours.</strong> Which row it is changes as you scroll. Section 15.</li>
+    <li><strong>Your mod&rsquo;s copies never touch the game&rsquo;s art</strong>, shared attachment textures included. If something changed on a weapon you did not edit, it was not this.</li>
+  </ul>
+</section>
+
+<section id="files">
+  <h2><span class="num">19</span>Where everything lives</h2>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:38%">Path</th><th>What is there</th></tr>
+    <tr><td><code>Documents\Zero Company Mods</code></td><td>Your mod projects, one <code>.json</code> each. Change it with Browse if you would rather keep them elsewhere.</td></tr>
+    <tr><td><code>&lt;that folder&gt;\ModSource\Meshes</code></td><td>Your FBX files.</td></tr>
+    <tr><td><code>&lt;that folder&gt;\ModSource\Textures</code></td><td>Your replacement textures.</td></tr>
+    <tr><td><code>&lt;that folder&gt;\ModSource\Icons</code></td><td>Your PNG/TGA icons.</td></tr>
+    <tr><td><code>&lt;game&gt;\SWZeroCompany\Mods\</code></td><td>Where installed mods end up. Delete a folder to remove a mod by hand.</td></tr>
+  </table>
+  </div>
+
+  <p>Those <code>ModSource</code> folders are made for you the first time you import something, so you do not need to create them. A file left in a <code>ModSource</code> folder <em>beside</em> your mods folder is also found, which is the older layout from when mods lived inside an Unreal project.</p>
+
+  <p>The <code>.json</code> project file is plain text and safe to edit by hand &mdash; comments and fields the tool does not know are preserved. It is also the only way to reach the handful of things that have no button yet.</p>
+</section>
+
+<footer>
+  <p>Written against the Mod Studio as built on 3 September 2026. Facts in this document were checked against the game's own data rather than assumed, and the weapon sections were checked <em>in game</em> &mdash; in particular that a mod can add its own Armoury class, that a duplicate can carry numbers of its own, and that a weapon split into separate barrel, stock, receiver and scope assembles correctly from four meshes exported out of one scene.</p>
+</footer>
+
+</div>
+
+</body>
+</html>

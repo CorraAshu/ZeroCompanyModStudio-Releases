@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>:root{color-scheme:light dark}body{margin:0;padding:0}img{max-width:100%}</style>
+<title>Your First Zero Company Mod</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+<style>
+  :root {
+    --ground:      #f6f7f9;
+    --surface:     #ffffff;
+    --line:        #d6dae2;
+    --ink:         #191d25;
+    --ink-soft:    #454c5b;
+    --muted:       #6e7686;
+    --accent:      #1f6fb8;
+    --accent-soft: #e5eff8;
+    --warn:        #8f5c0c;
+    --warn-soft:   #fbf1dc;
+    --good:        #1c7340;
+    --good-soft:   #e2f3e8;
+    --code-bg:     #edeff3;
+
+    --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #10131a;
+      --surface:     #181c25;
+      --line:        #2c323f;
+      --ink:         #e8ebf1;
+      --ink-soft:    #bcc3d0;
+      --muted:       #86909f;
+      --accent:      #4d9ee6;
+      --accent-soft: #17293c;
+      --warn:        #e0a33a;
+      --warn-soft:   #2f2515;
+      --good:        #5fbf7f;
+      --good-soft:   #16281e;
+      --code-bg:     #1f242f;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #10131a;
+    --surface:     #181c25;
+    --line:        #2c323f;
+    --ink:         #e8ebf1;
+    --ink-soft:    #bcc3d0;
+    --muted:       #86909f;
+    --accent:      #4d9ee6;
+    --accent-soft: #17293c;
+    --warn:        #e0a33a;
+    --warn-soft:   #2f2515;
+    --good:        #5fbf7f;
+    --good-soft:   #16281e;
+    --code-bg:     #1f242f;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 18.5px;
+    line-height: 1.7;
+    margin: 0;
+    padding: 0 20px 120px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  header.top { padding: 76px 0 36px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 16px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(36px, 7vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin: 0 0 20px;
+    text-wrap: balance;
+  }
+  .standfirst {
+    font-size: 21px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0 0 12px;
+  }
+
+  .promise {
+    background: var(--accent-soft);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin: 32px 0 56px;
+  }
+  .promise p { margin: 0; font-size: 17px; }
+  .promise strong { font-weight: 600; }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 27px;
+    line-height: 1.2;
+    margin: 56px 0 14px;
+    text-wrap: balance;
+  }
+  h2 .step {
+    display: inline-grid;
+    place-items: center;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 500;
+    margin-right: 14px;
+    vertical-align: 3px;
+  }
+  h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 19px;
+    margin: 32px 0 8px;
+  }
+  p { margin: 0 0 18px; }
+  ul, ol { padding-left: 24px; }
+  li { margin: 0 0 10px; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    word-break: break-word;
+  }
+
+  .box {
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin: 0 0 24px;
+    border-left: 4px solid var(--muted);
+    background: var(--surface);
+  }
+  .box p:last-child { margin-bottom: 0; }
+  .box .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 8px;
+    color: var(--muted);
+  }
+  .box.careful { border-left-color: var(--warn); background: var(--warn-soft); }
+  .box.careful .tag { color: var(--warn); }
+  .box.good { border-left-color: var(--good); background: var(--good-soft); }
+  .box.good .tag { color: var(--good); }
+  .box.plain { border-left-color: var(--accent); background: var(--accent-soft); }
+  .box.plain .tag { color: var(--accent); }
+
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    position: relative;
+    padding-left: 34px;
+    margin-bottom: 12px;
+  }
+  .checklist li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 8px;
+    width: 18px; height: 18px;
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+  }
+
+  .whatnext {
+    border-top: 2px solid var(--ink);
+    margin-top: 72px;
+    padding-top: 28px;
+  }
+  .whatnext h2 { margin-top: 0; }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+
+  dl.jargon { margin: 0; }
+  dl.jargon dt {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 18px;
+    margin-top: 20px;
+  }
+  dl.jargon dd { margin: 4px 0 0; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Star Wars Zero Company &middot; Start here</p>
+  <h1>Your First Mod</h1>
+  <p class="standfirst">Never made a mod before? Good &mdash; this is written for you. By the end you will have Captain Rex's armour in your game, wearable by any character.</p>
+</header>
+
+<div class="promise">
+  <p><strong>You do not need Unreal Engine. You do not need to code. You do not need to know what any of the file types are.</strong> About fifteen minutes, most of it waiting for the tool to read the game.</p>
+</div>
+
+<h2><span class="step">1</span>Open the Mod Studio</h2>
+
+<p>Double-click <strong>Zero Company Mod Studio</strong>. Its icon is the game's own logo, in blue.</p>
+
+<p>The very first time, it goes looking for where Zero Company is installed on your computer, finds it, and asks you to confirm. Press <strong>Use this install</strong>. That question is asked once and never again.</p>
+
+<p>Then it spends a moment reading the game. You will see counts scrolling by in the panel at the bottom right &mdash; that is normal, and it is where the tool tells you what it is doing. When it settles down, you are ready.</p>
+
+<div class="box plain">
+  <span class="tag">If it cannot find the game</span>
+  <p>Press <strong>Browse</strong> and point it at the folder Zero Company is installed in &mdash; the one that contains a folder called <code>SWZeroCompany</code>. On Steam that is usually under <code>steamapps\common</code>.</p>
+</div>
+
+<h2><span class="step">2</span>Start a mod and give it a name</h2>
+
+<p>Look at the row of tabs along the bottom: <em>Animations, Characters, Parts, Mod, Sounds, Export</em>. You want <strong>Mod</strong>. It should already be open.</p>
+
+<p>There is a box that says <em>Name for a new mod</em>. Type something &mdash; <code>RexArmour</code> will do &mdash; and press <strong>Create mod</strong>.</p>
+
+<p>That is your mod. It is a single small file saved on your computer, and it is saved the moment you make it. You can close the tool and come back to it whenever you like.</p>
+
+<div class="box">
+  <span class="tag">Where it saves</span>
+  <p>In your Documents folder, under <strong>Zero Company Mods</strong>. If you would rather keep your mods somewhere else, press <strong>Browse</strong> next to the folder path at the top and pick a folder. It remembers.</p>
+</div>
+
+<h2><span class="step">3</span>Find Rex's armour</h2>
+
+<p>Click the <strong>Parts</strong> tab.</p>
+
+<p>This is a list of every piece of clothing, armour and equipment in the game, with the game's own little pictures beside them. There are thousands, so use the filter box at the top left. Type:</p>
+
+<p><code>CaptainRexA</code></p>
+
+<p>Six things come up &mdash; his helmet, torso, arms, legs, boots and pack. These are the exact parts the game itself uses when Rex wears his armour.</p>
+
+<div class="box good">
+  <span class="tag">Why this works at all</span>
+  <p>You might expect Rex's armour to be locked to Rex. It is not. It is simply hidden from the menu. When you make your own copy of it, the copy is not hidden &mdash; and a copy is exactly what you are about to make.</p>
+</div>
+
+<h2><span class="step">4</span>Copy each piece into your mod</h2>
+
+<p>Click the first piece in the list. Details appear on the right, and near them a button that says <strong>Use as a mod part</strong>. Press it.</p>
+
+<p>The tool switches you to the Mod tab and shows what you just picked up, with a choice to <strong>Add</strong> it or discard it. Press <strong>Add</strong>.</p>
+
+<p>Now go back to the Parts tab and do the same for the other five. Click, <em>Use as a mod part</em>, Add. Six times in total.</p>
+
+<div class="box">
+  <span class="tag">You do not have to do all six</span>
+  <p>One piece is a perfectly good first mod. If you want just the helmet, take just the helmet. You can always come back and add more later &mdash; your mod is a file you can keep working on.</p>
+</div>
+
+<h3>Give them names you will recognise</h3>
+
+<p>Click a part in your mod's list. In the editor there is a box called <strong>Name in menu</strong>. Whatever you type there is what you will see in the game.</p>
+
+<p>They arrive named things like <em>&ldquo;Captain Rex Helmet (Mod)&rdquo;</em>, which is fine. But <em>&ldquo;501st Captain &mdash; Helmet&rdquo;</em> looks better when you are scrolling the armoury.</p>
+
+<div class="box plain">
+  <span class="tag">A small thing worth knowing</span>
+  <p>Rex's armour has no name of its own in the game's data &mdash; it was never meant to show up in a menu, so nobody wrote one. The tool writes yours in anyway. You will see it mention that in the build, and it is not a problem.</p>
+</div>
+
+<div class="box careful">
+  <span class="tag">Leave the rest alone for now</span>
+  <p>There are a lot of other boxes. You do not need any of them &mdash; every one is already filled in correctly because you copied a part that works. Changing things you do not understand yet is the fastest way to a mod that does not.</p>
+</div>
+
+<h2><span class="step">5</span>Build it, and it is in the game</h2>
+
+<p class="box careful"><span class="tag">Close the game first</span> If Zero Company is running, close it completely. A running game holds onto its own files, and the tool will build your mod but refuse to put it in until the game lets go.</p>
+
+<p>Press <strong>Build and install</strong>.</p>
+
+<p>The tool turns your mod into the files the game can read, then &mdash; this is the useful part &mdash; immediately reads those files back and checks them. If they read back clean, it writes your mod into its own folder inside the game and tells you exactly where it went. It does not overwrite anything belonging to the game, and it does not touch anyone else's mods.</p>
+
+<p>What you want to see is two green lines: that it read back clean, and where it was installed. If something is wrong, it says what in plain words, right there on screen, and nothing goes into the game.</p>
+
+<div class="box good">
+  <span class="tag">A broken mod never reaches the game</span>
+  <p>The check runs before the install, every time. If it fails, the mod is not installed and the Install button stays greyed out. That is deliberate. The tool will not put something into your game that it already knows is broken.</p>
+</div>
+
+<h2><span class="step">6</span>See it, and take it out again</h2>
+
+<p>Start Zero Company, go to a character's armoury, and look through the helmets. Yours is in there.</p>
+
+<p>Your mod lives in the game's <code>SWZeroCompany\Mods</code> folder, in a folder of its own named after the mod: a small descriptor file, an asset registry, a <code>Config</code> folder with any tags it adds, and the three container files under <code>Content\Paks</code>. That folder is the whole mod. Zip it and it works on anyone's machine.</p>
+
+<div class="box plain">
+  <span class="tag">To remove it again</span>
+  <p>Come back to the Mod tab, open the same mod, and press <strong>Take it out</strong>. It disappears completely. Nothing is left behind.</p>
+</div>
+
+<h3>Seeing what you made, without launching the game</h3>
+
+<p>Next to Install there is a <strong>Show its files</strong> button. Press it and the Assets panel on the left fills with your mod's own files. Click the mesh among them and it opens in the viewport &mdash; your copy, with your textures on it.</p>
+
+<div class="box careful">
+  <span class="tag">One catch</span>
+  <p>The tool reads the game once, when it starts. A mod you have <em>just</em> installed will not be found until it reads it again: <strong>Settings &rarr; Reload game</strong>. If Show its files comes up empty, that is why.</p>
+</div>
+
+<h2><span class="step">7</span>An easier mod: change a number</h2>
+
+<p>That was the hard one. This is the easy one, and it is worth doing next because it takes about a minute and you will see the result in the game's own menu.</p>
+
+<p>Every weapon's damage, range and critical chance live in a table the game reads while it is playing. You can change any of them.</p>
+
+<p>Go to the <strong>Parts</strong> tab and type <code>repeater</code> into the search box. Click it. Details appear on the right, and under <em>Weapon specialisation</em> is a list of numbers &mdash; Damage, Range, CriticalHitChance and so on. That list is what the game reads.</p>
+
+<p>Beneath it is a button: <strong>Edit these numbers in a mod</strong>. Press it. The tool switches you to the Mod tab with every row editable. (If you have no mod open, open or create one first, then press it again.)</p>
+
+<p>Type a new Damage. The game's own value stays in the column beside yours, so you can always see what it was, and anything you do not touch is not part of your mod at all.</p>
+
+<p>Then <strong>Build</strong> and install exactly as before, and go and look at that weapon in the game's Armoury.</p>
+
+<div class="box good">
+  <span class="tag">It really is that direct</span>
+  <p>Set a repeater's damage to 88 and the Armoury reads 90 &mdash; the extra two being an attachment fitted to that weapon. Your number goes in at the bottom and the game's own bonuses stack on top of it. Nothing is being approximated.</p>
+</div>
+
+<div class="box careful">
+  <span class="tag">Check which table you are in</span>
+  <p>A table usually belongs to a <em>kind</em> of weapon rather than to one character &mdash; the standard blaster pistol's numbers are shared by everyone carrying one. The Studio prints the table's name above the rows. Read it before you change anything, because &ldquo;make the pistol stronger&rdquo; and &ldquo;make <em>my</em> pistol stronger&rdquo; are two different tables.</p>
+</div>
+
+<div class="box plain">
+  <span class="tag">Two things you may notice</span>
+  <p>A row that says <strong>unset</strong> is one the game ships as zero. You can still give it a value; it is just a slightly bigger change under the hood, and the Studio handles it.</p>
+  <p>The <strong>Min</strong> and <strong>Max</strong> columns are notes, not limits. The game itself breaks them &mdash; Rex's pistol ships a critical damage above its own stated maximum &mdash; so the Studio does not stop you either.</p>
+</div>
+
+<h3>While you are there: give it a new name</h3>
+
+<p>A weapon you have rebalanced should probably not still be called what it was. On the same screen there is <strong>New menu name</strong> and <strong>New description</strong>. Both show up in the Armoury.</p>
+
+<p>The description accepts the game's own formatting, so you can write <code>&lt;Bold&gt;Base Damage&lt;/&gt;</code> and it comes out bold, exactly like the text on a weapon the game shipped.</p>
+
+<h2><span class="step">8</span>Make a new class</h2>
+
+<p>The last one. A <em>specialization</em> is the class a recruit is &mdash; Assault, Scout, Padawan &mdash; and you can make one of your own. It takes about as long as step 7 and it is the change people notice most, because it turns up in the menu every time anybody recruits somebody.</p>
+
+<p>Go to the <strong>Specs</strong> tab. You will see the game's classes listed, and clicking one shows what it actually is: the abilities it hands out for free, and its <strong>focus tree</strong> &mdash; three columns of abilities that get stronger as a recruit spends focus on them.</p>
+
+<p>Pick the one closest to the class you have in mind and press <strong>Duplicate into a mod</strong>. The whole thing is copied into your mod and you land in the Mod tab looking at it.</p>
+
+<p>Now change what you want. Give it a <strong>Menu name</strong> and a <strong>Description</strong>. Then click any ability &mdash; in the tree or in the list above it &mdash; and a searchable list of every ability in the game opens. Choose a different one and it is swapped.</p>
+
+<p><strong>Build</strong> and install exactly as before.</p>
+
+<div class="box good">
+  <span class="tag">You do not have to fill anything in</span>
+  <p>Everything you do not touch stays as the class you copied. Rename it and change one ability and you have a real, working class &mdash; the tree, the icon, the starting gear and the other sixteen abilities all came with it.</p>
+</div>
+
+<div class="box careful">
+  <span class="tag">Do not copy Rex or Anakin</span>
+  <p>The hero kits have no focus tree at all, and the game will not offer a class that cannot fill one. Copying one gives you something that builds cleanly and never appears in the menu. The Specs tab tells you before you start: look at the rung count, and if it says zero, pick a different one.</p>
+  <p>Putting a hero's <em>abilities</em> into a copy of a real class works perfectly. That is the way round to do it.</p>
+</div>
+
+<div class="box plain">
+  <span class="tag">Two things worth knowing</span>
+  <p>A column of the tree is normally one ability getting stronger &mdash; tier 1 through tier 6. Most hero abilities have only one tier, so dropping one into a six-rung column leaves the other five granting the old ability. Nothing breaks; it is just not what you meant.</p>
+  <p>If you copied a hero's class, the tag that reserved it for that hero is removed for you. Leave <strong>Only for</strong> blank and anybody can pick it.</p>
+</div>
+
+<div class="box good">
+  <span class="tag">The game adopts it</span>
+  <p>A class you make is not merely tolerated by the menu. The game's own recruit generator starts rolling it onto new recruits, so you will meet strangers who have taken your class without ever choosing it yourself.</p>
+</div>
+
+<h2>If you give it to someone else</h2>
+
+<p>Everything you have made so far lives in one folder, and that folder is the whole mod. Zip it, send it, and it works on anybody's machine.</p>
+
+<p><strong>Tell them where it goes:</strong> unzip the folder into <code>SWZeroCompany\Mods</code>. Most Unreal modders will reach for <code>Content\Paks\~mods</code> out of habit, because that is how nearly every other UE5 game works, and taking the three container files out of the folder to put them there takes the mod apart. One sentence in your description saves the message that begins &ldquo;I installed it and nothing happened&rdquo;.</p>
+
+<p>One thing to know before you send anything you are proud of: <strong>whoever installs it can also open its contents.</strong> Your meshes, your textures, your numbers. That is true of every mod for every Unreal game, there is no setting anywhere that changes it, and you should be suspicious of any tool that says otherwise.</p>
+
+<div class="box good">
+  <span class="tag">This tool will not be the one that does it</span>
+  <p>Open somebody else's mod in the Mod Studio and its files show with a padlock. They cannot be exported, and they cannot be copied into a mod of your own. You can see what is installed; you cannot take it apart.</p>
+  <p>That does not stop a person who really wants your mesh, and nothing could. It stops the easy version &mdash; installing your mod, opening this editor, and pressing a button.</p>
+</div>
+
+<div class="box plain">
+  <span class="tag">Two small things in your favour</span>
+  <p>The <strong>Author</strong> name you typed in step 2 is written into the mod, so your work goes out with your name on it.</p>
+  <p>And <strong>keep your project files</strong> &mdash; the ones in your mods folder. They are tiny, they are the only version you can edit, and a built mod cannot be turned back into one. They are also how the studio knows a mod is yours, so a mod you built on another computer stays open to you as soon as its project file is there.</p>
+</div>
+
+<div class="whatnext">
+  <h2>What to try next</h2>
+
+  <p>You now know the whole loop, and it does not change: <strong>find something &rarr; copy it &rarr; change it &rarr; build &rarr; install</strong>. Everything else is a variation on that.</p>
+
+  <ul>
+    <li><strong>Rebalance a whole weapon.</strong> Step 7 changes one number; nothing stops you changing all of them, renaming the weapon and rewriting its description to say what you did.</li>
+    <li><strong>Copy something else.</strong> Any part in the Parts tab works the same way. Hero gear, other characters' outfits, pieces you have never seen in a menu.</li>
+    <li><strong>Learn the Parts list.</strong> It is grouped into headings you can fold away &mdash; Headwear, Tops, Armwear and so on. <em>Collapse all</em> shows you the whole catalogue at a glance, which is the quickest way to find out what kinds of thing exist.</li>
+  <li><strong>Change a picture.</strong> Open the <em>Textures</em> section of a part to swap the images it wears for your own.</li>
+    <li><strong>Bring in your own model.</strong> The <em>My own mesh</em> section takes an FBX file you have made yourself. To start from the game's own model rather than from nothing, install the <strong>Blender add-on</strong> from the <em>Plugins</em> menu &mdash; it browses the game from inside Blender and imports a piece complete with its skeleton, its skin weights and its textures. Editing what is already rigged is far easier than rigging something new.</li>
+    <li><strong>Design a whole class.</strong> Step 8 changes one ability. Nothing stops you replacing all seventeen, so the tree grants exactly the abilities you chose.</li>
+    <li><strong>Add a weapon of your own.</strong> The <em>Weapons</em> tab copies a whole weapon &mdash; all five files it is made of &mdash; under your mod's name, beside the original rather than over it. Give the copy your model, your textures, a name, and an icon &mdash; one of the game's from the picker, or a picture of your own. The handbook's <em>Making a weapon</em> section has the details.</li>
+    <li><strong>Unlock things.</strong> <em>Overrides</em> change the game's own items rather than adding new ones &mdash; that is how a hero's existing specialisation gets opened up to everybody, as opposed to making a new one.</li>
+    <li><strong>Free a hero's own gear.</strong> Heads, hair and hero kits <em>are</em> tied to one character. Copy one and use <em>Remove tags</em> to take that character's tag off, and anybody can wear it.</li>
+  </ul>
+
+  <p>All of those are covered properly in the full handbook, which explains what each field does and why. Come back to it when you want to know <em>why</em> rather than <em>which button</em>.</p>
+</div>
+
+<h2>Words you will keep seeing</h2>
+
+<dl class="jargon">
+  <dt>Part</dt>
+  <dd>Any single thing a character wears or has &mdash; a helmet, a torso, a specialisation. The game is built out of these.</dd>
+
+  <dt>Slot</dt>
+  <dd>Where a part goes. Helmet, Torso, Arms, Legs, Boots. A part knows its own slot, so you rarely have to think about it.</dd>
+
+  <dt>Mesh</dt>
+  <dd>The 3D shape of a thing. Not its colours &mdash; those are the textures.</dd>
+
+  <dt>Texture</dt>
+  <dd>The images painted onto a mesh. Colour, wear, scratches.</dd>
+
+  <dt>Focus tree</dt>
+  <dd>The three columns of abilities on a class, which a recruit unlocks by spending focus as they level. Seventeen slots in total. A class without one is never offered.</dd>
+
+  <dt>Project file</dt>
+  <dd>The small editable file in your mods folder that describes your mod. Not the mod itself &mdash; the mod is what Build makes from it. Keep it.</dd>
+
+  <dt>Template</dt>
+  <dd>The original part yours was copied from. It is why your copy behaves properly &mdash; a clone helmet copied from a clone part keeps the clone voice filter, for instance.</dd>
+
+  <dt>Build</dt>
+  <dd>Turning your mod file into something the game can actually read.</dd>
+
+  <dt>Attribute table</dt>
+  <dd>The list of numbers behind a weapon &mdash; damage, range, critical chance. The game reads it while it is playing, which is why changing one changes the weapon.</dd>
+
+  <dt>Override</dt>
+  <dd>Changing one of the game's own things, instead of adding a new one. More advanced, and covered in the handbook.</dd>
+</dl>
+
+<footer>
+  <p>If something here does not match what you see on screen, trust the screen &mdash; and say so, because that is a bug in the tool or in this guide rather than something you did wrong.</p>
+</footer>
+
+</div>
+
+</body>
+</html>

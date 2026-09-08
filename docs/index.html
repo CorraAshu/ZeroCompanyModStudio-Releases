@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zero Company Mod Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600&display=swap">
+<style>
+  :root {
+    --ground:      #f4f5f7;
+    --surface:     #ffffff;
+    --line:        #d3d7e0;
+    --ink:         #1a1d24;
+    --ink-soft:    #4a5160;
+    --muted:       #6d7585;
+    --accent:      #1f6fb8;
+    --accent-soft: #e4eef8;
+
+    --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #101319;
+      --surface:     #171b23;
+      --line:        #2b313d;
+      --ink:         #e6e9ef;
+      --ink-soft:    #b9c0cd;
+      --muted:       #838d9f;
+      --accent:      #4d9ee6;
+      --accent-soft: #17293b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:      #101319;
+    --surface:     #171b23;
+    --line:        #2b313d;
+    --ink:         #e6e9ef;
+    --ink-soft:    #b9c0cd;
+    --muted:       #838d9f;
+    --accent:      #4d9ee6;
+    --accent-soft: #17293b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.65;
+    margin: 0;
+    padding: 0 20px 96px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  header { padding: 76px 0 8px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 16px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(36px, 7vw, 54px);
+    line-height: 1.04;
+    letter-spacing: -0.015em;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  .standfirst { font-size: 20px; line-height: 1.55; color: var(--ink-soft); margin: 0; max-width: 60ch; }
+  p { max-width: 64ch; }
+
+  .cta {
+    display: inline-block;
+    margin: 32px 0 8px;
+    padding: 12px 22px;
+    border-radius: 4px;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 17px;
+    text-decoration: none;
+  }
+  .cta:hover { filter: brightness(1.08); }
+  .under { font-size: 14.5px; color: var(--muted); margin: 0 0 48px; }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 22px;
+    margin: 48px 0 6px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+
+  .guides { display: grid; gap: 14px; margin: 22px 0 0; padding: 0; list-style: none; }
+  .guides a {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .guides a:hover { border-left-color: var(--ink); }
+  .guides strong { font-family: var(--display); font-size: 19px; display: block; margin-bottom: 4px; }
+  .guides span { color: var(--ink-soft); font-size: 15.5px; }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 14px;
+  }
+  footer p { max-width: 64ch; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Star Wars Zero Company</p>
+  <h1>Zero Company Mod Studio</h1>
+  <p class="standfirst">A mod editor that reads the game's own files, copies what is already in
+  there, and writes a mod the game loads on startup. No Unreal Engine, no coding.</p>
+</header>
+
+<a class="cta" href="https://github.com/CorraAshu/ZeroCompanyModStudio-Releases/releases/latest">Download the latest release</a>
+<p class="under">Windows 64-bit &middot; unzip and run <code>ZeroCompanyModStudio.exe</code> &middot; no installer</p>
+
+<h2>The guides</h2>
+<p>Both ship inside the download, under <strong>Handbook</strong> in the menu bar. They are here
+too, for reading before you download.</p>
+
+<ul class="guides">
+  <li><a href="first-mod.html">
+    <strong>Your First Mod</strong>
+    <span>Start here. About fifteen minutes, ending with Captain Rex's armour wearable by anyone.</span>
+  </a></li>
+  <li><a href="handbook.html">
+    <strong>The Complete Handbook</strong>
+    <span>Every feature, field by field, and why each one works the way it does.</span>
+  </a></li>
+</ul>
+
+<h2>What it makes</h2>
+<p>Armour and clothing from any part in the game, including gear hidden from the menu. Your own
+models, imported from FBX, with a Blender add-on that browses the game from inside Blender.
+Weapons duplicated whole onto a shelf of their own in the Armoury. Balance changes to any weapon.
+Classes built from any of the game's 826 abilities. And battle droids as recruits &mdash; a B1, B2
+or BX who fights with his own animations, his own weapon and his own action points.</p>
+
+<p>Everything is made by copying something the game already has, so a part you make behaves like a
+part the game shipped. Nothing belonging to the game is overwritten.</p>
+
+<footer>
+  <p>Made by Clonetrooper163. Free to download and use, and the mods you make with it are yours.
+  See the <a href="https://github.com/CorraAshu/ZeroCompanyModStudio-Releases/blob/main/LICENSE">licence</a>.</p>
+  <p>An unofficial tool. Not affiliated with or endorsed by Bit Reactor, Respawn Entertainment,
+  Electronic Arts or Lucasfilm. Star Wars and Zero Company belong to their owners.</p>
+</footer>
+
+</div>
+</body>
+</html>
