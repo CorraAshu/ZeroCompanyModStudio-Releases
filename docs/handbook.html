@@ -901,7 +901,7 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
 
   <p>Firestorm's damage, how long Disoriented lasts, how much accuracy it takes off you &mdash; all of it is data, and none of it needs the game unpacking. Open the <strong>Browse the game</strong> tab and press <strong>Abilities</strong>.</p>
 
-  <p>Find the ability, and the page shows you the whole of it: what the game calls it, its description as a player reads it, and every number behind it. Then <strong>Change what it does</strong> puts the assets that hold those numbers into whichever mod you have open, and takes you there. Each one arrives with its numbers under <strong>Its numbers</strong>, laid out exactly like a weapon's stats &mdash; your value on the left, the game's on the right, and anything you leave alone is not shipped.</p>
+  <p>Find the ability, and the page shows you the whole of it: what the game calls it, its description as a player reads it, how often it comes back, and every number behind it &mdash; the ability's own (blast radius, throw range, the roster level it unlocks at) as well as the magnitudes inside the effects it applies. Then <strong>Change what it does</strong> puts the assets that hold those numbers into whichever mod you have open, and takes you there. Each one arrives with its numbers under <strong>Its numbers</strong>, laid out exactly like a weapon's stats &mdash; your value on the left, what the game ships on the right, and anything you leave alone is not shipped.</p>
 
   <div class="why">
     <span class="tag">An ability is a signpost, not a number</span>
@@ -917,7 +917,8 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
     <tr><th style="width:26%">What you see</th><th>What it means</th></tr>
     <tr><td><strong>read elsewhere</strong> &mdash; a curve table</td><td>The number in the asset is a fallback nobody reads; the real value is a row in a curve table. Changing it builds cleanly and does nothing in game.</td></tr>
     <tr><td><strong>read elsewhere</strong> &mdash; worked out another way</td><td>The magnitude is derived from one of your attributes, handed in while the game runs, or computed by code. Same story: the number is there, it is editable, and it is ignored.</td></tr>
-    <tr><td><strong>zero, not stored</strong></td><td>A cooked file leaves a zero out entirely, so there are no bytes to write over. The box is greyed out rather than hidden, so you can still see what the ability does.</td></tr>
+    <tr><td><strong>not in file</strong></td><td>Not a warning &mdash; an opportunity. The asset leaves this at its default, so the cooked file has no copy of it. Type a value and the Studio <em>adds</em> the property; the build reads the result back to prove it took. See below.</td></tr>
+    <tr><td><strong>zero, not stored</strong></td><td>The one that really cannot be changed. A zero inside a list &mdash; one modifier of several &mdash; has no bytes to write over and no room to grow. The box is greyed out rather than hidden, so you can still see what the ability does.</td></tr>
   </table>
   </div>
 
@@ -928,9 +929,23 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
     <p>Everything here is an <a href="#overrides">override</a>. You are shipping the game's own ability with a different number in it, so <em>every</em> character who has that ability is affected, and nothing new appears in any menu. There is no way to give one squad member a stronger Firestorm this way &mdash; that would be a new ability, granted by a specialization of your own (<a href="#specs">section 15</a>).</p>
   </div>
 
+  <h3>Numbers the file does not carry</h3>
+
+  <p>A cooked asset stores only what differs from its class default, so reading one tells you nothing about the rest of it. That is why <code>GE_Cooldown_RocketStrike</code> looks empty: it holds a tag and nothing else. Its class declares <code>UsesPerCooldown</code> as its very first property &mdash; the asset simply leaves it alone.</p>
+
+  <p>Rows like that are marked <strong>not in file</strong> and the box works. Type a value and the property is added.</p>
+
+  <div class="win">
+    <span class="tag">Uses per combat, which the game already does this way</span>
+    <p>An ability that is &ldquo;once per encounter&rdquo; is not limited by a number &mdash; it applies a cooldown tag that lasts the rest of the fight. What decides how many uses you get first is <code>UsesPerCooldown</code> on the cooldown effect, and 18 of the game's 69 cooldown effects set it: <code>GE_Cooldown_Medkit_T2</code> carries 2 and <code>GE_Cooldown_Medkit_T3</code> carries 3. That is how the game tiers a medkit, and it is now how you can tier anything else.</p>
+    <p>Open the ability, press <strong>Change what it does</strong>, pick its <code>GE_Cooldown_</code> asset, and set <strong>Uses per cooldown</strong>. Setting it back to 0 removes the change, because a zero is not something the file format can store.</p>
+  </div>
+
   <h3>What is worth changing</h3>
 
   <p>Durations and stack counts are the reliable ones: how many turns a debuff lasts, how many stacks an ability applies, how much a flat modifier adds or takes away. <code>GE_Disoriented</code> takes 4 off accuracy and the box says so; type 25 and it takes 25.</p>
+
+  <p>Above them sit the ability's own numbers, which are usually the plainest thing on the page: <code>GrenadeBlastRadius</code>, <code>MaxThrowRange</code>, <code>BlastBaseDamage</code>, <code>OverwatchShotCount</code>, and <code>MinRosterLevel</code> &mdash; which decides how far up the focus tree a tier sits.</p>
 
 </section>
 
@@ -941,7 +956,12 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
 
   <p><strong>Browse the game &rarr; Tables.</strong> Find one, and the page shows what its rows are, how many there are, and the numbers in them. <strong>Change these numbers</strong> puts the table into whichever mod you have open, and its rows arrive under <strong>Its numbers</strong> as a grid: rows down the left, editable fields across, one box each.</p>
 
-  <p>Row names are long and repetitive &mdash; every row of the cost table begins <code>BitReactor.AbilityCost.</code> &mdash; so the grid shows the last part and the whole name is in the tooltip, along with everything the columns leave out. There is a <strong>Find a row</strong> box above the grid for the big tables.</p>
+  <p>The grid shows <em>every</em> field, not only the ones you can change, because the names and tags are usually how you tell two rows apart: three rows of <code>DT_Costs</code> have identical numbers and are called Interact, Move to interact and Double move to interact. Fields you cannot write are dimmed, and <strong>Only the fields I can change</strong> narrows the grid when you would rather see just the boxes. Row names are long and repetitive &mdash; every row of the cost table begins <code>BitReactor.AbilityCost.</code> &mdash; so the grid shows the last part and the whole name is in the tooltip. There is a <strong>Find a row</strong> box above the grid for the big tables.</p>
+
+  <div class="trap">
+    <span class="tag">A row is shared by everything that names it</span>
+    <p>&ldquo;Make Precision Shot cost less Advantage&rdquo; comes down to one row, <code>BitReactor.AbilityCost.GeneralADVx6</code> &mdash; and that row is named by <em>every</em> ability costing six Advantage. Changing it is the right edit and it is not one ability; it is a balance change several times the size of the one you meant. The page says so on every table.</p>
+  </div>
 
   <div class="win">
     <span class="tag">A zero can be raised here</span>
@@ -950,7 +970,7 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
 
   <h3>Only some fields get a box</h3>
 
-  <p>A field gets an editable box when it is a number the build can write &mdash; a decimal, or a whole number. Names, tags, references and true/false are shown in the row's tooltip and cannot be changed here. That distinction is not cosmetic: a true/false reads as a number and is one byte, and a box that wrote four bytes over it would quietly destroy the two fields after it.</p>
+  <p>A field gets an editable box when it is a number the build can write &mdash; a decimal, or a whole number. Names, tags, references and true/false are shown but cannot be changed here. That distinction is not cosmetic: a true/false reads as a number and is one byte, and a box that wrote four bytes over it would quietly destroy the two fields after it.</p>
 
   <div class="trap">
     <span class="tag">Some tables are built from other tables</span>
