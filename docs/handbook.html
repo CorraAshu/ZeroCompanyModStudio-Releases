@@ -843,6 +843,38 @@ CPD_H_Outfit_CaptainRexA_PACK     Pack</code></pre>
     <p>There is no menu entry to un-pick. Removing the mod puts the game's own asset back &mdash; but if you have <em>equipped</em> anything from a mod, unequip it and save before you remove the folder, or the save file will still name a package that is no longer there.</p>
   </div>
 
+  <h3>How many colours the player gets</h3>
+
+  <p>Every outfit region &mdash; helmet, torso, arms, legs, boots &mdash; has <strong>four</strong> colour swatches, and the part decides how many of them the menu offers. Most parts take some away, because their material does nothing with them. The clone commando helmet takes away two, which is why a tint mask painted for three colours only gives you two.</p>
+
+  <p>Open <strong>Its colours</strong> on a replacement, or <strong>Slot</strong> on a duplicate, and every swatch the part has taken away is listed with a tick. Untick one and it comes back.</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th style="width:22%">Swatch</th><th style="width:20%">Material</th><th>Painted by</th></tr>
+    <tr><td>Primary</td><td><code>Color 01</code></td><td>the <strong>red</strong> channel of the tint mask</td></tr>
+    <tr><td>Secondary</td><td><code>Color 02</code></td><td>the <strong>green</strong> channel</td></tr>
+    <tr><td>Tertiary</td><td><code>Color 03</code></td><td>the <strong>blue</strong> channel</td></tr>
+    <tr><td>Visor</td><td><code>Color 04</code></td><td>a separate mask &mdash; not one of the three channels</td></tr>
+  </table>
+  </div>
+
+  <div class="win">
+    <span class="tag">It tells you whether the swatch will actually do anything</span>
+    <p>A swatch that comes back still has to reach the model, and that is decided by the material rather than by the part. The Studio reads it: <strong>green</strong> means the material uses that colour and unticking works; <strong>amber</strong> means the material has it switched off and the swatch would appear and do nothing.</p>
+    <p>Across the whole game 247 taken-away swatches would work if handed back and 39 would not, so it is a real distinction and worth reading before you paint a channel for one.</p>
+  </div>
+
+  <div class="why">
+    <span class="tag">The game does this to itself</span>
+    <p><code>CPD_H_Outfit_Clo000_HELM</code> takes away two swatches. Its eleven variants <code>_TintA</code> to <code>_TintK</code> are the same helmet and the same mesh, take away only one, and each ships a colour for the one they hand back. Those variants exist for no other reason.</p>
+  </div>
+
+  <div class="trap">
+    <span class="tag">A swatch has to leave two lists, not one</span>
+    <p>A part both <em>hides</em> a swatch and <em>locks</em> it. Taken out of one only, it comes back permanently greyed out, or stays invisible while being live. The Studio does both in one edit and the build's comparison checks both &mdash; but it is why unticking is a tick rather than something you can do by hand in an asset editor.</p>
+  </div>
+
   <div class="why">
     <span class="tag">The rule that makes overrides work</span>
     <p>The game keeps <em>two</em> copies of a part's tags: one in the asset itself, one in an index written when the game was built. The menu reads the <strong>display name from the asset</strong> and <strong>availability from the index</strong>. Change only the asset and you get a renamed part that is still locked. The Studio edits both for you &mdash; but it is why an override that &ldquo;looks right&rdquo; can still do nothing, and why the build's own comparison is worth reading.</p>
