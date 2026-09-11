@@ -70,8 +70,15 @@ the guide rather than something you did wrong.
 
 ## Licence
 
-See [LICENSE](LICENSE). Free to download and use, including for mods you go on to share; not to
-be redistributed, sold, modified or claimed as someone else's work.
+**GNU General Public License v3.0, from version 1.6.0 onward** &mdash; see [LICENSE](LICENSE).
+
+Free to use, share and change. The mods you make with it are yours. If you pass on a changed
+version, it has to stay under the same licence, with the source available and the credit intact
+&mdash; nobody gets to close it off or put their own name on it.
+
+Releases up to and including 1.5.1 went out under a proprietary "free to use, do not redistribute"
+licence and keep the terms they were downloaded under. Nothing anyone already had is taken away:
+GPL-3.0 grants strictly more than that licence did.
 
 The build ships third-party components under their own licences, listed in full in `NOTICE.md`
 inside the download.
