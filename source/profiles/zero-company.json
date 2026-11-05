@@ -1,0 +1,80 @@
+{
+  "Name": "Star Wars Zero Company",
+  "PaksDirectory": "",
+  "EngineVersion": "GAME_UE5_6",
+  "MappingsFile": "",
+  "TexturePlatform": "DesktopMobile",
+  "CharacterPaths": [
+    "SWZeroCompany/Content/Game/Characters/"
+  ],
+  "ExcludePaths": [],
+  "Atlas": {
+    "Enabled": false
+  },
+  "Readers": {
+    "CustomizationParts": true
+  },
+  "Classify": {
+    "SkeletalMeshPrefixes": [
+      "SK_"
+    ],
+    "StaticMeshPrefixes": [
+      "SM_"
+    ],
+    "TexturePrefixes": [
+      "T_"
+    ],
+    "MaterialPrefixes": [
+      "MI",
+      "M_",
+      "MM_"
+    ],
+    "AnimationPrefixes": [
+      "A_",
+      "AS_"
+    ],
+    "BlueprintPrefixes": [
+      "BP_",
+      "ABP_"
+    ],
+    "TextureFolders": [
+      "/textures/",
+      "/texture/"
+    ],
+    "MaterialFolders": [
+      "/materials/",
+      "/material/"
+    ],
+    "AnimationFolders": [
+      "/animations/",
+      "/anim/",
+      "/anims/"
+    ],
+    "SkeletalMeshFolders": [],
+    "DataSuffixes": [
+      "_Skeleton",
+      "_PhysicsAsset"
+    ],
+    "DataPrefixes": [
+      "DA_",
+      "CR_"
+    ],
+    "DataContains": [
+      "AnimBP",
+      "AnimBlueprint",
+      "ControlRig",
+      "LODSettings"
+    ],
+    "TextureSuffixes": [
+      "_D",
+      "_N",
+      "_C",
+      "_RMA",
+      "_ORM",
+      "_M",
+      "_S"
+    ]
+  },
+  "AesKey": null,
+  "ExtraAesKeys": {}
+}

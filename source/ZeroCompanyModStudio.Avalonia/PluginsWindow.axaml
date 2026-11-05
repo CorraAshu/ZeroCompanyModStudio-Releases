@@ -1,0 +1,101 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ZeroCompanyModStudioAvalonia.PluginsWindow"
+        Title="Add-ons and presets"
+        Width="700" SizeToContent="Height" MinHeight="420" MaxHeight="900"
+        CanResize="True"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Ground}">
+
+  <!--
+    ADD-ONS AND PRESETS: the ImGui Studio's Plugins window (UEToolkit.App\PluginsWindow.cs), in
+    its words. Three sections and none is inside another: the Blender half ends early when there is
+    no Blender, and anything written after it would not exist for the person with no Blender - who
+    is exactly the one most likely to want the Substance preset.
+
+    Why a window and not a menu entry: the Blender install cannot finish itself. Blender keeps its
+    list of enabled add-ons in its own binary preferences, so the last step has to be READ, and a
+    line in a log is not read.
+
+    The rows are built in code (one per Blender found), so the markup is only the frame.
+  -->
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="24,20,24,20" Spacing="10">
+
+      <!-- ============================================================ BLENDER -->
+      <StackPanel Name="BlenderBlock" Spacing="8">
+        <TextBlock Text="Blender add-on" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource Accent}"/>
+        <TextBlock FontSize="12.5" TextWrapping="Wrap" Foreground="{DynamicResource Fore}"
+                   Text="Browse this game and import its models from inside Blender -- with their skeletons, their skin weights and their textures already set up. It is the quickest way to get something to edit before you bring your own version back in."/>
+
+        <TextBlock Name="BlenderMissing" FontSize="12.5" TextWrapping="Wrap" Foreground="#F87171" IsVisible="False"
+                   Text="The add-on is missing from this installation. It should sit in a BlenderAddon folder beside the program."/>
+
+        <StackPanel Name="NoBlender" Spacing="8" IsVisible="False">
+          <TextBlock FontSize="12.5" Foreground="#FBBF24" Text="No Blender found."/>
+          <TextBlock FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"
+                     Text="Blender is found by its SETTINGS folder rather than its program folder, because that is where an add-on has to go and it is the same place however Blender was installed -- including from Steam. A Blender that has never been opened has no settings folder yet: launch it once, then press Rescan."/>
+          <Button Content="Rescan" Click="OnRescan" Padding="16,6" FontSize="12" HorizontalAlignment="Left"/>
+        </StackPanel>
+
+        <StackPanel Name="BlenderRows" Spacing="6"/>
+
+        <TextBlock Name="BlenderNote" FontSize="12.5" TextWrapping="Wrap" Foreground="{DynamicResource Fore}" IsVisible="False"/>
+
+        <!-- THE STEP THAT CANNOT BE AUTOMATED, said in full and left on screen. -->
+        <Border Name="OneMoreStep" IsVisible="False" Padding="12,10" CornerRadius="4"
+                Background="{DynamicResource Chrome}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+          <StackPanel Spacing="8">
+            <TextBlock Text="One more step, in Blender:" FontSize="12.5" FontWeight="SemiBold" Foreground="#FBBF24"/>
+            <TextBlock FontSize="12.5" TextWrapping="Wrap" Foreground="{DynamicResource Fore}"
+                       Text="Open Edit > Preferences > Add-ons, search for &quot;Zero Company&quot;, and tick it. Blender keeps its list of switched-on add-ons inside its own preferences file, so nothing outside Blender can tick that box for you."/>
+            <TextBlock FontSize="12.5" TextWrapping="Wrap" Foreground="{DynamicResource Fore}"
+                       Text="Then press N in the 3D viewport and pick the &quot;Zero Company&quot; tab. Press Scan Game once -- it remembers what it finds -- and everything after that is instant."/>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Button Content="Copy the add-on name" Click="OnCopyName" Padding="14,6" FontSize="12"/>
+              <TextBlock Name="ModuleText" FontSize="12" Foreground="{DynamicResource Muted}" VerticalAlignment="Center"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <Border Height="1" Background="{DynamicResource Line}" Margin="0,6"/>
+
+      <!-- ============================================================ SUBSTANCE -->
+      <StackPanel Name="SubstanceBlock" Spacing="8">
+        <TextBlock Text="Substance Exporter" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource Accent}"/>
+        <TextBlock FontSize="12.5" TextWrapping="Wrap" Foreground="{DynamicResource Fore}"
+                   Text="An export preset for Substance 3D Painter that writes the texture maps this game expects -- the right channels, in the right images, at the right bit depth. Getting those wrong is the commonest reason a texture looks right in Painter and wrong in the game."/>
+        <TextBlock Name="SubstanceMissing" FontSize="12.5" TextWrapping="Wrap" Foreground="#F87171" IsVisible="False"
+                   Text="The preset is missing from this installation. It should sit in a SubstancePreset folder beside the program."/>
+        <Button Name="SubstanceButton" Content="Save the preset…" Click="OnSavePreset" Padding="16,7" FontSize="12"
+                HorizontalAlignment="Left" MinWidth="190"/>
+        <TextBlock Name="SubstanceNote" FontSize="12.5" TextWrapping="Wrap" IsVisible="False"/>
+        <TextBlock Text="Contributed by Nada." FontSize="11.5" Foreground="{DynamicResource Muted}"/>
+      </StackPanel>
+
+      <Border Height="1" Background="{DynamicResource Line}" Margin="0,6"/>
+
+      <!-- ============================================================ MAX -->
+      <StackPanel Name="MaxBlock" Spacing="8">
+        <TextBlock Text="Battlefront II retarget (3ds Max)" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource Accent}"/>
+        <TextBlock FontSize="12.5" TextWrapping="Wrap" Foreground="{DynamicResource Fore}"
+                   Text="A MAXScript that scales and retargets a Battlefront II (2017) character onto this game's rig, so it can be cut into slots and imported. It fits on height, then aims and places fifteen bone chains - torso, arms, legs and all ten fingers - checking each aim against the scene and flipping it if it went the wrong way."/>
+        <TextBlock FontSize="12.5" TextWrapping="Wrap" Foreground="{DynamicResource Fore}"
+                   Text="Importing keeps the weighting the model arrives with, so a port carries its original weights all the way into the game. Cutting the model into pieces is still yours to do."/>
+        <TextBlock Name="MaxMissing" FontSize="12.5" TextWrapping="Wrap" Foreground="#F87171" IsVisible="False"
+                   Text="The script is missing from this installation. It should sit in a 3dsMax folder beside the program."/>
+        <Button Name="MaxButton" Content="Save the script…" Click="OnSaveScript" Padding="16,7" FontSize="12"
+                HorizontalAlignment="Left" MinWidth="190"/>
+        <TextBlock Name="MaxNote" FontSize="12.5" TextWrapping="Wrap" IsVisible="False"/>
+        <TextBlock Text="Written for 3ds Max 2012 and up. Needs a Battlefront II character FBX you already have."
+                   FontSize="11.5" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"/>
+      </StackPanel>
+
+      <Button Content="Close" Click="OnClose" Padding="22,6" FontSize="12" MinWidth="96"
+              HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,8,0,0"
+              IsCancel="True"/>
+    </StackPanel>
+  </ScrollViewer>
+</Window>

@@ -1,0 +1,151 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Zero Company Level Editor - a third application beside the toolkit and the Mod Studio.
+
+    SEPARATE ON PURPOSE, and for a different reason than the Studio was. The Studio is split so a
+    shipped build cannot open another game; this one is split because it is a DIFFERENT SHAPE of
+    tool. The toolkit is an asset browser (navigate, look, export) and a level editor is a
+    document editor (hold a map, accumulate edits, see what they will do, build). Bolting the
+    second onto the first is exactly what made the Studio's mission tab feel cramped.
+
+    It is also the first thing here built on Avalonia rather than ImGui. Nothing else moves:
+    UEToolkit.Core is referenced whole and unchanged, so the provider, the index, the Zen writers
+    and the mesh readers are the same code the other two applications run.
+
+    FROM 2.0.0 IT SHIPS BESIDE THE MOD STUDIO: the same download, the same folder, the same
+    version. That is why the Version below is the Studio's and not its own, and why the first-run
+    windows, the About window and the game-finding code are LINKED from the Studio's project rather
+    than written a second time (see the items further down).
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AssemblyName>ZeroCompanyLevelEditor</AssemblyName>
+    <Product>Zero Company Level Editor</Product>
+    <AssemblyTitle>Zero Company Level Editor</AssemblyTitle>
+    <Company>Clonetrooper163</Company>
+    <Authors>Clonetrooper163</Authors>
+    <Copyright>Copyright (c) 2026 Clonetrooper163. Licensed under the GNU GPL v3.0.</Copyright>
+    <!--
+      THE VERSION IS THE STUDIO'S AND IS IN THREE PLACES, the way the Studio's is: Branding.Version in
+      Program.cs (what About shows), and these two elements (what Windows shows on the exe's Details
+      tab). publish.ps1 reads the Studio's Program.cs and refuses to build when the Studio's csproj
+      disagrees; it checks this project's two elements against the same number. Change all of them
+      together.
+    -->
+    <Version>2.0.0</Version>
+    <InformationalVersion>2.0.0</InformationalVersion>
+    <!-- Without this the SDK appends "+<commit hash>" and the Details tab reads 2.0.0+8d28296...,
+         a number nobody downloading it can use (the Studio's csproj says the same). -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!--
+      The executable's own icon: the Studio's picture in the Level Editor's colour (tools/studioicon.py with its level tint, from
+      the game's icon, the same way the Studio's is made), so the two programs that ship in one folder are not the same
+      picture side by side in a taskbar.
+    -->
+    <ApplicationIcon>ZeroCompanyLevelEditor.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The same file again as a resource, for the window's own icon (an Avalonia window carries none by itself). -->
+    <AvaloniaResource Include="ZeroCompanyLevelEditor.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UEToolkit.Core\UEToolkit.Core.csproj" />
+  </ItemGroup>
+
+  <!--
+    THE DEVELOPER COMMAND LINE - about seventy flags in MainWindow, App and Program that open a map,
+    fly the camera, photograph the viewport, count placements and print what they find - is testing
+    scaffolding and has no business in a release. It sits behind "#if DEV", gated exactly as the
+    Studio's driver is, so all the applications answer to one switch.
+
+    Presence of ../dev/ is what enables it, rather than a build configuration anyone has to
+    remember to pass. Locally the folder exists, DEV is defined, and every flag works. On a fresh
+    clone of the public source the folder is absent, DEV is not defined, and the driver compiles
+    away, so the checkout BUILDS rather than failing on something it was never given.
+
+    A RELEASE CAN TURN IT OFF, which the folder test alone could not: publish.ps1 passes
+    -p:DevHarness=false for this project as well as the Studio, and searches the published dll for
+    the flag names before it calls a stage publishable (tools/stagecheck.ps1, check Dev).
+  -->
+  <PropertyGroup Condition="'$(DevHarness)' != 'false' And Exists('$(MSBuildProjectDirectory)\..\dev')">
+    <DefineConstants>$(DefineConstants);DEV</DefineConstants>
+  </PropertyGroup>
+
+  <!--
+    THE RENDERER, LINKED RATHER THAN COPIED - the same rule the Mod Studio follows: never a
+    second copy of the source. These files are pure Silk.NET and CUE4Parse, and not one of them
+    mentions ImGui, AppState or the interface, which is the only reason they move at all.
+
+    The Rendering folder is exactly the shared drawing code; the toolkit's own viewport (a GLFW
+    window and an ImGui frame) lives in UEToolkit.App\Viewport instead.
+  -->
+  <ItemGroup>
+    <Compile Include="..\UEToolkit.App\Rendering\*.cs" LinkBase="Shared\Rendering" />
+  </ItemGroup>
+
+  <!--
+    WHAT THE STUDIO ALREADY DOES, LINKED RATHER THAN WRITTEN AGAIN - never a second copy. Two copies
+    of a window can disagree about a promise (the licence, what is sent where, which folder is the
+    game), and the people who read them are the same people.
+
+    GameFolderWindow   the question "where is Star Wars Zero Company?", with Steam's list, a path box
+                       and Browse. Its model class (GameFolderVm) lives in the same file.
+    GameBuildWindow    "the game has changed since this was built - Carry on anyway", shown BEFORE the
+                       editor so it never draws a level through the wrong mappings without saying so.
+    AboutWindow        who made it, the licence, the disclaimer. Shown with no settings, so the
+                       Studio's update switch is simply not drawn here: the Level Editor does not
+                       look for updates, the Studio has the one check.
+    Obs                the bindable base those windows' models stand on. (The Level Editor has its
+                       own, in Editor.cs, in its own namespace; the two do not meet.)
+
+    They keep their own namespace (ZeroCompanyModStudioAvalonia) and use the colour keys the
+    Level Editor's theme defines under the same names, so they look like the Studio's in this app.
+  -->
+  <ItemGroup>
+    <AvaloniaXaml Include="..\ZeroCompanyModStudio.Avalonia\GameFolderWindow.axaml" Link="Shared\GameFolderWindow.axaml" />
+    <AvaloniaXaml Include="..\ZeroCompanyModStudio.Avalonia\GameBuildWindow.axaml" Link="Shared\GameBuildWindow.axaml" />
+    <AvaloniaXaml Include="..\ZeroCompanyModStudio.Avalonia\AboutWindow.axaml" Link="Shared\AboutWindow.axaml" />
+    <Compile Include="..\ZeroCompanyModStudio.Avalonia\GameFolderWindow.axaml.cs" Link="Shared\GameFolderWindow.axaml.cs" />
+    <Compile Include="..\ZeroCompanyModStudio.Avalonia\GameBuildWindow.axaml.cs" Link="Shared\GameBuildWindow.axaml.cs" />
+    <Compile Include="..\ZeroCompanyModStudio.Avalonia\AboutWindow.axaml.cs" Link="Shared\AboutWindow.axaml.cs" />
+    <Compile Include="..\ZeroCompanyModStudio.Avalonia\Obs.cs" Link="Shared\Obs.cs" />
+    <!-- The background mode that keeps a test launch off the author's screen: DEV-only (the file is
+         empty without DEV), so the release has none of it. Linked, so the two programs cannot differ. -->
+    <Compile Include="..\ZeroCompanyModStudio.Avalonia\BackgroundMode.cs" Link="Shared\BackgroundMode.cs" />
+  </ItemGroup>
+
+  <!--
+    THE PROFILE TEMPLATE, for the same reason the Studio links it: the first run (UEToolkit.Core's
+    GameSetup) makes the user's own profile from it, and a program that cannot find it has no game
+    to open. It is the SAME file, so where both programs ship in one folder the two copies are the
+    same bytes (publish.ps1 compares every file the two publishes share). Never written to.
+  -->
+  <ItemGroup>
+    <Content Include="..\ZeroCompanyModStudio\profile-template.json"
+             Link="profile-template.json"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
+    <!--
+      Silk.NET drives the GL, exactly as it does in the toolkit. Avalonia owns the CONTEXT and
+      hands out a GetProcAddress; Silk binds to it. That is the whole reason the existing
+      renderer can be reused rather than rewritten against a second graphics API.
+    -->
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.22.0" />
+  </ItemGroup>
+
+</Project>

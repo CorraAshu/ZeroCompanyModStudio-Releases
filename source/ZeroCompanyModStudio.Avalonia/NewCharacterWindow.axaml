@@ -1,0 +1,88 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ZeroCompanyModStudioAvalonia"
+        x:Class="ZeroCompanyModStudioAvalonia.NewCharacterWindow"
+        x:DataType="local:NewCharacterVm"
+        Title="A character of your own"
+        Width="660" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Ground}">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.dim">
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+    </Style>
+    <Style Selector="TextBlock.faint">
+      <Setter Property="Foreground" Value="{DynamicResource Faint}"/>
+    </Style>
+  </Window.Styles>
+
+  <StackPanel Margin="22,20" Spacing="11">
+
+    <TextBlock Text="A character of your own" FontSize="17" FontWeight="SemiBold"
+               Foreground="{DynamicResource Fore}"/>
+
+    <TextBlock Classes="dim" FontSize="12.5" TextWrapping="Wrap"
+               Text="Start from one of the game's characters. Their species, face and outfit come with them, and every one of those can be changed afterwards on their own page. The name and story are yours from the start. They join the hiring pool, like anybody the databank offers."/>
+
+    <TextBox Name="FindBox" Text="{Binding Filter, Mode=TwoWay}" FontSize="13"
+             Watermark="Type a name: Databank, B2, Coil, Pyke, Trooper — or a species, like Twi or Rodian"/>
+
+    <Border BorderBrush="{DynamicResource Line}" BorderThickness="1" Height="168">
+      <ListBox ItemsSource="{Binding Matches}" SelectedItem="{Binding Picked, Mode=TwoWay}"
+               Background="Transparent" FontSize="12">
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="local:NewCharacterVm+Row">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                         TextTrimming="CharacterEllipsis"/>
+              <TextBlock Grid.Column="1" Text="{Binding Where}" Classes="faint" FontSize="11"
+                         VerticalAlignment="Center" Margin="10,0,0,0"/>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Border>
+
+    <TextBlock Text="{Binding PickedSays}" Classes="faint" FontSize="11.5" TextWrapping="Wrap"/>
+
+    <TextBlock Text="{Binding BespokeSays}" FontSize="11" TextWrapping="Wrap"
+               Foreground="#FBBF24" IsVisible="{Binding IsBespoke}"/>
+
+    <Grid ColumnDefinitions="Auto,10,Auto">
+      <TextBox Width="220" FontSize="13" Watermark="First name"
+               Text="{Binding First, Mode=TwoWay}"/>
+      <TextBox Grid.Column="2" Width="220" FontSize="13" Watermark="Last name"
+               Text="{Binding Last, Mode=TwoWay}"/>
+    </Grid>
+
+    <TextBox FontSize="12.5" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="78"
+             Watermark="Their story — what the databank prints as their biography"
+             Text="{Binding Story, Mode=TwoWay}"/>
+
+    <Grid ColumnDefinitions="Auto,10,*">
+      <ComboBox Width="170" FontSize="12.5" ItemsSource="{Binding Pools}"
+                SelectedIndex="{Binding PoolIndex, Mode=TwoWay}"/>
+      <TextBlock Grid.Column="2" Text="is where they join" Classes="dim" FontSize="12"
+                 VerticalAlignment="Center"/>
+    </Grid>
+
+    <!-- THE RIG DECIDES THE POOL, and overriding it earns a measurement rather than a guess:
+         a B1 put in the wrong one was INVISIBLE on the squad screen, a floating weapon and no
+         body. Recomputed whenever the template changes. -->
+    <TextBlock Text="{Binding RigSays}" FontSize="11" TextWrapping="Wrap"
+               Classes="faint" IsVisible="{Binding !RigWarn}"/>
+    <TextBlock Text="{Binding RigSays}" FontSize="11" TextWrapping="Wrap"
+               Foreground="#F87171" IsVisible="{Binding RigWarn}"/>
+
+    <TextBlock Text="{Binding Verdict}" FontSize="11" TextWrapping="Wrap" Classes="faint"/>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
+      <Button Content="Not now" Click="OnCancel" FontSize="12.5" Padding="18,6"/>
+      <Button Content="Make them" Click="OnMake" FontSize="12.5" Padding="22,6"
+              IsEnabled="{Binding CanMake}" IsDefault="True"
+              Background="{DynamicResource Accent}" Foreground="#1A1408"/>
+    </StackPanel>
+  </StackPanel>
+</Window>

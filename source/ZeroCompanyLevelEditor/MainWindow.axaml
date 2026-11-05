@@ -1,0 +1,1275 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ZeroCompanyLevelEditor"
+        x:Class="ZeroCompanyLevelEditor.MainWindow"
+        x:DataType="vm:Editor"
+        Title="Zero Company Level Editor"
+        Icon="avares://ZeroCompanyLevelEditor/ZeroCompanyLevelEditor.ico"
+        Width="1680" Height="1000"
+        FontFamily="Segoe UI"
+        Background="{DynamicResource Ground}">
+
+  <Window.Styles>
+    <Style Selector="TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+      <Setter Property="FontSize" Value="13"/>
+    </Style>
+    <Style Selector="TextBlock.cap">
+      <Setter Property="Foreground" Value="{DynamicResource Faint}"/>
+      <Setter Property="FontSize" Value="10.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="LetterSpacing" Value="1.4"/>
+    </Style>
+    <Style Selector="TextBlock.dim">
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+      <Setter Property="FontSize" Value="12"/>
+    </Style>
+    <Style Selector="TextBlock.mono">
+      <Setter Property="FontFamily" Value="Cascadia Mono,Consolas,Courier New"/>
+      <Setter Property="FontSize" Value="12"/>
+    </Style>
+    <Style Selector="TextBlock.num">
+      <Setter Property="FontFamily" Value="Cascadia Mono,Consolas,Courier New"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+    </Style>
+
+    <Style Selector="Border.panel">
+      <Setter Property="Background" Value="{DynamicResource Panel}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+
+    <Style Selector="ToggleButton.chip">
+      <Setter Property="Background" Value="{DynamicResource Raised}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="10,3"/>
+      <Setter Property="FontSize" Value="11.5"/>
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+      <Setter Property="MinHeight" Value="0"/>
+      <Setter Property="Margin" Value="0,0,5,5"/>
+    </Style>
+    <Style Selector="ToggleButton.chip:checked">
+      <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+    </Style>
+
+    <Style Selector="TreeViewItem" x:DataType="vm:Node">
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+      <Setter Property="MinHeight" Value="0"/>
+      <Setter Property="Padding" Value="2,1"/>
+    </Style>
+    <!--
+      THE ASSET TREE HOLDS A DIFFERENT NODE TYPE, and a compiled binding is typed.
+
+      The rule above says x:DataType="vm:Node", so against an AssetTreeNode it resolves to nothing
+      and does so SILENTLY: the model said every folder was expanded and the screen showed them all
+      shut, with no warning anywhere. Same shape as every other typed-binding fault. It is not an
+      error, it is an absence.
+    -->
+    <Style Selector="TreeView#AssetList TreeViewItem" x:DataType="vm:AssetTreeNode">
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+    </Style>
+    <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="{DynamicResource SelBg}"/>
+    </Style>
+    <Style Selector="TreeViewItem:selected:pointerover /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="{DynamicResource SelBgHover}"/>
+    </Style>
+
+    <Style Selector="Expander">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+
+    <Style Selector="Button.ghost">
+      <Setter Property="Background" Value="{DynamicResource Raised}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+      <Setter Property="CornerRadius" Value="3"/>
+      <Setter Property="Padding" Value="12,4"/>
+      <Setter Property="FontSize" Value="12.5"/>
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{DynamicResource Accent}"/>
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CornerRadius" Value="3"/>
+      <Setter Property="Padding" Value="14,4"/>
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="RadioButton.tool">
+      <Setter Property="Background" Value="{DynamicResource Raised}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="3"/>
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+      <Setter Property="Padding" Value="11,3"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="MinHeight" Value="0"/>
+      <Setter Property="Margin" Value="0,0,4,0"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="Box" Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              Foreground="{TemplateBinding Foreground}"
+                              VerticalAlignment="Center" HorizontalAlignment="Center"/>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="ToggleButton.tool">
+      <Setter Property="Background" Value="{DynamicResource Raised}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="3"/>
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+      <Setter Property="Padding" Value="11,3"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="MinHeight" Value="0"/>
+      <Setter Property="Margin" Value="0,0,4,0"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              Foreground="{TemplateBinding Foreground}"
+                              VerticalAlignment="Center" HorizontalAlignment="Center"/>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <!-- CHECKED means HIDDEN here, so the lit state is the one that is doing something. -->
+    <Style Selector="ToggleButton.tool:checked">
+      <Setter Property="Background" Value="{DynamicResource Accent}"/>
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+    </Style>
+
+    <Style Selector="RadioButton.tool:checked">
+      <Setter Property="Background" Value="{DynamicResource Accent}"/>
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+    </Style>
+    <Style Selector="RadioButton.tool:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+    </Style>
+
+    <Style Selector="Button.step">
+      <Setter Property="Background" Value="{DynamicResource Raised}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="3"/>
+      <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+      <Setter Property="Padding" Value="9,3"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="MinHeight" Value="0"/>
+      <Setter Property="Margin" Value="0,0,4,0"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              Foreground="{TemplateBinding Foreground}"
+                              VerticalAlignment="Center" HorizontalAlignment="Center"/>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="Button.step:disabled">
+      <Setter Property="Opacity" Value="0.4"/>
+      <Setter Property="Foreground" Value="{DynamicResource Faint}"/>
+    </Style>
+    <Style Selector="Button.step:pointerover">
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+    </Style>
+
+    <Style Selector="ListBox.rows > ListBoxItem">
+      <Setter Property="Padding" Value="9,3"/>
+      <Setter Property="MinHeight" Value="0"/>
+    </Style>
+
+    <Style Selector="Button.tiny">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+      <Setter Property="Padding" Value="6,1"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="MinHeight" Value="0"/>
+    </Style>
+
+    <!--
+      THE TOOLBAR'S SLIDERS (cam, light). The theme lays a slider out as three rows, 15 px / the 20 px thumb / 15 px
+      (room for tick marks), and these two sit in a toolbar row 22 px high. Squeezed into 22 px the track row still
+      began 15 px down, so the thumb was cut off by the control's own bounds (measured: 60% of the circle showed).
+      The template's grid is pulled up by the 14 px that the rows leave empty above the thumb and down by the same
+      below it, which puts the 20 px thumb in the middle of the 22 px control with the ticks (never shown) outside it.
+    -->
+    <Style Selector="Slider.bar /template/ Grid#HorizontalTemplate">
+      <Setter Property="Margin" Value="0,-14"/>
+    </Style>
+
+    <Style Selector="NumericUpDown">
+      <Setter Property="FontFamily" Value="Cascadia Mono,Consolas"/>
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="MinWidth" Value="0"/>
+      <Setter Property="Padding" Value="4,2"/>
+    </Style>
+  </Window.Styles>
+
+  <DockPanel Name="Root" Background="{DynamicResource Ground}">
+
+    <!-- === MENU ===
+         TWO MENUS IN ONE STRIP, the Mod Studio's arrangement: this program's own on the left, and on the
+         right the credit - anchored to the right edge, and the one thing that must not move when something is
+         added beside it. Auto, *, Auto: the left menu takes what it needs, the gap takes the rest, and the
+         credit takes what it needs, so a window too narrow for both squeezes the gap first and never the credit. -->
+    <Grid DockPanel.Dock="Top" Background="{DynamicResource Chrome}" Height="30"
+          ColumnDefinitions="Auto,*,Auto">
+    <Menu Grid.Column="0" Background="Transparent" Height="30">
+      <MenuItem Header="_Project">
+        <MenuItem Header="Open mod project…" Click="OnOpenProject"/>
+        <MenuItem Header="Save changes to project" Click="OnSaveMoves"/>
+        <MenuItem Header="Build and install" Click="OnBuildAndInstall"/>
+        <Separator/>
+        <!-- THE LEVEL, OUT AS A FILE: everything the viewport is drawing, as the game ships it, as one FBX with its
+             textures. Asks for a folder; the progress line above the status bar has the Cancel button; the summary,
+             including everything it could not write and why, goes to the Log tab. -->
+        <MenuItem Name="ExportFbxItem" Header="Export what's loaded to FBX…" Click="OnExportFbx"
+                  IsEnabled="{Binding CanExport}"
+                  ToolTip.Tip="{Binding ExportTip}" ToolTip.ShowOnDisabled="True"/>
+        <Separator/>
+        <!-- APP-LEVEL, not about the project: tells this program where the game is - the answer the Mod
+             Studio keeps, so it is told there too. Where a person goes when the game moved, was never
+             found, or the wrong one was picked - and what a failed mount's message points at. -->
+        <MenuItem Header="Find the game again…" Click="OnFindGame"/>
+      </MenuItem>
+      <MenuItem Header="_Edit">
+        <MenuItem Header="Undo" InputGesture="Ctrl+Z" Click="OnUndo" IsEnabled="{Binding CanUndo}"/>
+        <MenuItem Header="Redo" InputGesture="Ctrl+Y" Click="OnRedo" IsEnabled="{Binding CanRedo}"/>
+        <Separator/>
+        <MenuItem Header="Revert all changes" Click="OnRevertAll"/>
+      </MenuItem>
+      <MenuItem Header="_Map">
+        <MenuItem Header="Reload sublevel" Click="OnReload"/>
+        <Separator/>
+        <MenuItem Header="Hide cinematic and backdrop sublevels" Click="OnHideStaged"
+                  ToolTip.Tip="A guess by name: CIN_*, Vista, Nebula, Asteroid and Blockout. The game decides what is really streamed and nothing here can read that, so tick any of them back."/>
+        <MenuItem Header="Show every sublevel" Click="OnShowAllSublevels"/>
+        <Separator/>
+        <MenuItem Header="Add actor…   (pick one from the asset list on the right)" Click="OnGoToAssets"/>
+        <MenuItem Header="Rebuild navmesh   (impossible — baked, no editor)" IsEnabled="False"/>
+      </MenuItem>
+      <MenuItem Header="_View">
+        <MenuItem Header="Maps panel" Click="OnToggleMaps"/>
+        <MenuItem Header="Properties panel" Click="OnToggleProps"/>
+        <MenuItem Header="Bottom dock" Click="OnToggleDock"/>
+        <MenuItem Header="Measure flicker while I fly" Click="OnWatchFlicker"
+                  ToolTip.Tip="Reads the frame back every frame and compares it with the one before, so 'meshes keep rendering and de-rendering' becomes a number. Costs a full framebuffer read per frame, so it is off unless you ask."/>
+        <!-- THE DEVELOPER'S READOUT, off at every start (this program remembers no View choice, theme included, so there
+             is nothing to store): drawn / loading / texture / override counts, shadow cost and the depth ratio. Useful
+             to the person who is chasing a rendering fault, noise to everybody else. -->
+        <MenuItem Name="ShowStatsItem" Header="Show viewport statistics" Click="OnShowStats"
+                  ToolTip.Tip="Draws a block of counters in the corner of the 3D viewport: what is drawn, how many meshes are still loading, how many materials bound, shadow cost, clip planes. For chasing a rendering fault; off by default."/>
+        <Separator/>
+        <MenuItem Name="ShowUnloadedItem" Header="Show what the game would not load" Click="OnShowUnloaded"
+                  ToolTip.Tip="The package says which level instances do NOT load on their own (bAutomaticallyLoad) and which actors are hidden (bHidden). Off, so the viewport shows what the game shows. Turn it on to see everything the map contains, including pieces that only appear in particular story states."/>
+        <Separator/>
+        <MenuItem Header="Shading">
+          <MenuItem Header="Solid" Click="OnShadingPick"/>
+          <MenuItem Header="Material" Click="OnShadingPick"/>
+          <MenuItem Header="Rendered" Click="OnShadingPick"/>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Header="Theme">
+          <MenuItem Header="Dark" Click="OnTheme"/>
+          <MenuItem Header="Light" Click="OnTheme"/>
+          <MenuItem Header="Holotable" Click="OnTheme"/>
+        </MenuItem>
+      </MenuItem>
+      <!-- WHO MADE IT AND WHAT MAY BE DONE WITH IT, and where the next version is: the same two entries the
+           Mod Studio's About menu has, minus the update notice - this program does not look for one. -->
+      <MenuItem Header="_About">
+        <MenuItem Name="AboutItem" Header="About Zero Company Level Editor…" Click="OnAbout"/>
+        <MenuItem Name="DownloadsItem" Header="Downloads and updates" Click="OnOpenDownloads"/>
+      </MenuItem>
+    </Menu>
+
+    <!-- THE CREDIT, right-aligned: "<program> by <author>". A menu item as well as a label, so clicking it
+         opens About - one place, two ways in. Its text is set in code from Branding (MainWindow's
+         constructor), so a build with no author draws nothing. -->
+    <Menu Grid.Column="2" Background="Transparent" Height="30" HorizontalAlignment="Right">
+      <MenuItem Name="CreditItem" Click="OnAbout" FontSize="12.5"
+                Foreground="{DynamicResource Muted}" ToolTip.Tip="About this tool"/>
+    </Menu>
+    </Grid>
+
+    <!-- === TITLE BAR === -->
+    <Border DockPanel.Dock="Top" Background="{DynamicResource Chrome}" BorderBrush="{DynamicResource Line}"
+            BorderThickness="0,0,0,1" Padding="16,10">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <Border Width="4" Height="30" CornerRadius="2" Background="{DynamicResource Accent}"/>
+          <StackPanel Spacing="2">
+            <TextBlock Text="Zero Company Level Editor" FontSize="15" FontWeight="SemiBold"/>
+            <TextBlock Classes="dim" Text="{Binding SublevelTitle}"/>
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="34,0,0,0">
+          <Border Background="{DynamicResource AccentBg}" BorderBrush="{DynamicResource AccentLine}"
+                  BorderThickness="1" CornerRadius="3" Padding="9,3">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <Ellipse Width="7" Height="7" Fill="{DynamicResource Accent}" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding ProjectName}" FontSize="12" Foreground="{DynamicResource AccentText}"/>
+            </StackPanel>
+          </Border>
+          <TextBlock Classes="dim" VerticalAlignment="Center" Text="{Binding ProjectDetail}"/>
+          <TextBlock Classes="num" VerticalAlignment="Center" Foreground="{DynamicResource Edited}"
+                     Text="{Binding SublevelHint}"/>
+          <TextBlock Classes="num" VerticalAlignment="Center" Foreground="{DynamicResource Accent}"
+                     Text="working…" IsVisible="{Binding Busy}"/>
+
+          <!--
+            THE VERDICT, beside the project it belongs to. The build log goes to the Log tab like
+            everything else; this is the one line that says whether the thing is in the game, and
+            it is the line somebody presses the button to read.
+          -->
+          <Border IsVisible="{Binding BuildDone}" CornerRadius="3" Padding="9,3" MaxWidth="620"
+                  Background="{DynamicResource InfoBg}" BorderThickness="1"
+                  BorderBrush="{DynamicResource EditedLine}">
+            <TextBlock Classes="num" Text="{Binding BuildVerdict}" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding BuildVerdict}"/>
+          </Border>
+          <TextBlock Classes="num" VerticalAlignment="Center" Foreground="{DynamicResource Accent}"
+                     Text="building…" IsVisible="{Binding Building}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Classes="ghost" Content="Open project…" Click="OnOpenProject"/>
+          <Button Classes="ghost" Content="Reload sublevel" Click="OnReload"/>
+          <Button Classes="ghost" Content="Save changes" Click="OnSaveMoves"
+                  IsEnabled="{Binding HasProject}"/>
+          <!--
+            THE WHOLE WRITE HALF, in one press. Saving first is part of it, which is why Save
+            changes is no longer the primary action: pressing this is what somebody means when
+            they are done, and having to remember to save before building is the kind of step
+            that gets forgotten once and then blamed on the edit.
+          -->
+          <Button Classes="primary" Content="Build and install" Click="OnBuildAndInstall"
+                  IsEnabled="{Binding CanBuild}"
+                  ToolTip.Tip="Saves the project, builds it, reads the result back out of the container it just wrote, and puts it in the game's Mods folder if nothing failed."/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- === STATUS BAR === -->
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource Chrome}" BorderBrush="{DynamicResource Line}"
+            BorderThickness="0,1,0,0" Padding="16,5">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" Classes="num" Text="{Binding Status}" VerticalAlignment="Center"
+                   TextTrimming="CharacterEllipsis" Margin="0,0,16,0"/>
+        <TextBlock Grid.Column="1" Classes="num" Text="{Binding StatusRight}" VerticalAlignment="Center"/>
+      </Grid>
+    </Border>
+
+    <!-- === EXPORT PROGRESS === Above the status bar, only while an export runs: what it is doing, how far, and a
+         Cancel button. The window stays usable - the export runs on a worker thread. -->
+    <Border Name="ExportStrip" DockPanel.Dock="Bottom" IsVisible="{Binding Exporting}"
+            Background="{DynamicResource InfoBg}" BorderBrush="{DynamicResource Line}"
+            BorderThickness="0,1,0,0" Padding="16,6">
+      <Grid ColumnDefinitions="*,240,Auto">
+        <TextBlock Name="ExportLineText" Grid.Column="0" Classes="num" Text="{Binding ExportLine}"
+                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,16,0"/>
+        <ProgressBar Name="ExportBar" Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding ExportFraction}"
+                     Height="8" VerticalAlignment="Center"/>
+        <Button Name="ExportCancel" Grid.Column="2" Classes="ghost" Content="Cancel" Margin="12,0,0,0"
+                Click="OnCancelExport"
+                ToolTip.Tip="Stops the export and removes everything it has written so far."/>
+      </Grid>
+    </Border>
+
+    <!-- === BODY === -->
+    <Grid Name="OuterGrid" RowDefinitions="*,5,206" Margin="10">
+      <Grid Name="BodyGrid" Grid.Row="0" ColumnDefinitions="296,5,*,5,436">
+
+        <!-- === MAPS === -->
+        <Panel Grid.Column="0">
+          <Border Name="MapsPanel" Classes="panel">
+            <DockPanel>
+              <Border DockPanel.Dock="Top" Padding="12,9" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                  <TextBlock Classes="cap" Text="MAPS" VerticalAlignment="Center"/>
+                  <TextBlock Grid.Column="1" Classes="num" Text="{Binding MapCount}" VerticalAlignment="Center"/>
+                  <Button Grid.Column="2" Classes="tiny" Content="«" Click="OnToggleMaps" Margin="6,0,0,0"
+                          ToolTip.Tip="Collapse this panel"/>
+                </Grid>
+              </Border>
+              <TextBox DockPanel.Dock="Top" Margin="10,10,10,4" PlaceholderText="Filter maps…" FontSize="12.5"
+                       Padding="7,4" Text="{Binding MapFilter, Mode=TwoWay}"/>
+              <!--
+                WHAT THE TWO CLICKS DO. A map row and a sublevel row are two identical lines of
+                text, and nothing said that one opens sixty sublevels merged into one scene and
+                the other opens just that piece. The hub is 50,745 placements and takes minutes;
+                the sublevel holding the holotable arrives in seconds.
+              -->
+              <TextBlock DockPanel.Dock="Top" Classes="dim" Margin="12,0,12,8" TextWrapping="Wrap"
+                         LineHeight="16" FontSize="11.5"
+                         Text="Click a map to open all of it. Open its arrow and click one sublevel to load just that piece — far quicker on a big map."/>
+              <TreeView Name="MapsTree" ItemsSource="{Binding MapTree}" Background="Transparent"
+                        Margin="4,0,4,6" BorderThickness="0" SelectionChanged="OnMapSelected"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <TreeView.ItemTemplate>
+                  <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="vm:Node">
+                    <Grid ColumnDefinitions="Auto,*,Auto" HorizontalAlignment="Stretch">
+                      <!--
+                        ONLY A SUBLEVEL GETS A TICK. A map streams its sublevels conditionally and
+                        this editor loads all of them at once, so the hub draws eleven cinematic
+                        sets and five vista backdrops permanently. Untick one and it stops being
+                        drawn AND gives its meshes back.
+                      -->
+                      <CheckBox Grid.Column="0" IsVisible="{Binding IsSublevel}" Margin="0,0,4,0"
+                                MinWidth="0" Padding="0" VerticalAlignment="Center"
+                                IsChecked="{Binding Shown, Mode=TwoWay}"
+                                ToolTip.Tip="Draw this sublevel. The game streams these in and out as you play; this editor loads them all at once, so some of what you see is never on screen together in game."/>
+                      <StackPanel Grid.Column="1" Spacing="0">
+                        <TextBlock Text="{Binding Title}" FontSize="12.5" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <!--
+                          A LEVEL INSTANCE is a whole building in another file, followed by the
+                          placement reader and absent from everything the root says it streams. It
+                          still draws, so it still needs saying and still needs a tick.
+                        -->
+                        <TextBlock Classes="num" Text="{Binding Class}" Foreground="{DynamicResource Faint}"
+                                   IsVisible="{Binding Class}"/>
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Classes="num" Text="{Binding Detail}" VerticalAlignment="Center"
+                                 Margin="6,0,2,0"/>
+                    </Grid>
+                  </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+              </TreeView>
+            </DockPanel>
+          </Border>
+          <Border Name="MapsStrip" Classes="panel" IsVisible="False">
+            <Button Classes="tiny" Content="»" Click="OnToggleMaps" VerticalAlignment="Top"
+                    HorizontalAlignment="Center" Margin="0,9,0,0" ToolTip.Tip="Show maps"/>
+          </Border>
+        </Panel>
+
+        <GridSplitter Name="MapsSplitter" Grid.Column="1" Background="Transparent"/>
+
+        <!-- === ACTORS === -->
+        <Border Grid.Column="2" Classes="panel">
+          <Grid RowDefinitions="Auto,*">
+          <!--
+            THE TOOLBAR HAS A ROW OF ITS OWN, above the tabs. It used to be pinned over the tab strip's right-hand dead
+            space - "nothing there to collide with" - and at the program's default 1680 px window it did collide: the
+            strip is only as wide as the column, the toolbar is about a thousand pixels, and Move/Rotate sat on top of the
+            "Limits" and "3D viewport" headers while the light readout ran off the column (measured with UI Automation
+            rectangles). A WrapPanel, so a narrower window gives the controls another line instead of
+            clipping them or covering a header; the groups are kept whole (a slider never loses its label), and the
+            hairline after a group is the old separator.
+          -->
+          <WrapPanel Grid.Row="0" Margin="12,8,12,2" LineSpacing="4">
+            <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0" Margin="0,0,10,0" Padding="0,0,10,0">
+              <StackPanel Orientation="Horizontal" Spacing="0">
+                <!--
+                  ARROWS, NOT WORDS. Both carry a tooltip naming the step they would take back, and the Edit menu
+                  spells them out with their shortcuts.
+                -->
+                <Button Classes="step" Content="↶" Click="OnUndo" Width="30"
+                        IsEnabled="{Binding CanUndo}" ToolTip.Tip="{Binding UndoHint}"/>
+                <Button Classes="step" Content="↷" Click="OnRedo" Width="30"
+                        IsEnabled="{Binding CanRedo}" ToolTip.Tip="{Binding RedoHint}"/>
+              </StackPanel>
+            </Border>
+
+            <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0" Margin="0,0,10,0" Padding="0,0,10,0">
+              <StackPanel Orientation="Horizontal" Spacing="0">
+                <RadioButton Name="ToolSelect" Classes="tool" GroupName="tool" Content="Select" IsChecked="True"
+                             Click="OnTool" ToolTip.Tip="Click an actor in the viewport, or pick one from the list on the right."/>
+                <RadioButton Name="ToolMove" Classes="tool" GroupName="tool" Content="Move" Click="OnTool"
+                             ToolTip.Tip="Drag an arrow on the selected actor. One drag is one undo step."/>
+                <RadioButton Name="ToolRotate" Classes="tool" GroupName="tool" Content="Rotate" Click="OnTool"
+                             ToolTip.Tip="Drag a ring to turn the selected actor about its own root. Pitch, yaw and roll are the three rings."/>
+                <RadioButton Name="ToolScale" Classes="tool" GroupName="tool" Content="Scale" Click="OnTool"
+                             ToolTip.Tip="Drag a handle to resize the selected actor. One handle length doubles that axis."/>
+              </StackPanel>
+            </Border>
+
+            <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0" Margin="0,0,10,0" Padding="0,0,10,0">
+              <StackPanel Orientation="Horizontal" Spacing="0">
+                <Button Classes="step" Content="{Binding Shading}" Click="OnShading" MinWidth="76"
+                        ToolTip.Tip="{Binding ShadingHint}"/>
+
+                <ToggleButton Classes="tool" Content="Blockout" Click="OnBlockout"
+                              IsChecked="{Binding !ShowBlockout, Mode=OneWay}"
+                              ToolTip.Tip="Greybox the game does not draw - boxes, cylinders and BP_Blockout_* ramps left in the shipped level. Hidden by default."/>
+
+                <ToggleButton Classes="tool" Content="Backdrop" Click="OnBackdrop"
+                              IsEnabled="{Binding BackdropCount}" ToolTip.Tip="{Binding BackdropHint}"/>
+
+                <!--
+                  SHADOWS OFF IS A REAL SETTING. Three cascades mean a second pass over the level's
+                  geometry, and on a map of 26,000 placements that is the most expensive thing the
+                  viewport does. Someone dragging a crate around wants the frame rate more than they
+                  want the shadow.
+                -->
+                <ToggleButton Classes="tool" Content="Shadows" Click="OnShadows" IsChecked="True"
+                              ToolTip.Tip="Cascaded shadows from the level's key light. Rendered shading only; costs a geometry pass per cascade, so turn it off while moving things about."/>
+              </StackPanel>
+            </Border>
+
+            <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0" Margin="0,0,10,0" Padding="0,0,10,0">
+              <StackPanel Orientation="Horizontal" Spacing="0">
+                <TextBlock Classes="num" Text="cam" VerticalAlignment="Center" Margin="2,0,6,0"/>
+                <Slider Name="SpeedSlider" Classes="bar" Width="92" Height="22" MinHeight="22" Minimum="0.25" Maximum="4" Value="1"
+                        TickFrequency="0.25" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                        ValueChanged="OnCameraSpeed"
+                        ToolTip.Tip="How fast orbit, pan and zoom respond. A skirmish map and a single prop want very different rates."/>
+                <TextBlock Classes="num" Text="{Binding CameraSpeed, StringFormat={}{0:0.00}x}"
+                           VerticalAlignment="Center" Margin="8,0,0,0" Width="40"/>
+              </StackPanel>
+            </Border>
+
+            <!--
+              EXPOSURE, adjustable, because the level's intensities are photometric and this
+              renderer has no idea what a lux is. The rig is read exactly; how bright that should
+              come out through a tonemapper is taste, and taste belongs on a slider rather than in
+              a constant somebody has to rebuild to change. Only does anything in Rendered.
+            -->
+            <StackPanel Orientation="Horizontal" Spacing="0">
+              <TextBlock Classes="num" Text="light" VerticalAlignment="Center" Margin="2,0,6,0"/>
+              <!--
+                STARTS AT 0.7, which is what the renderer uses. It said 1.6 while the viewport ran
+                at 0.7: the default moved when the render turned out to be overexposed, and the
+                slider that displays it did not. A control showing a number the picture does not use
+                is worse than no control.
+              -->
+              <Slider Name="ExposureSlider" Classes="bar" Width="92" Height="22" MinHeight="22" Minimum="0.2" Maximum="6" Value="0.7"
+                      TickFrequency="0.2" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                      ValueChanged="OnExposure"
+                      ToolTip.Tip="Exposure for Rendered shading. The level's own light rig is read as-is; this is how bright it comes out."/>
+              <TextBlock Classes="num" Text="{Binding ExposureText}"
+                         VerticalAlignment="Center" Margin="8,0,0,0" Width="40"/>
+            </StackPanel>
+          </WrapPanel>
+          <TabControl Name="Tabs" Grid.Row="1" Padding="0" Margin="6,2,6,6" SelectionChanged="OnTabChanged">
+            <TabItem Header="Actors" FontSize="13">
+              <DockPanel>
+                <!-- *,2*: the summary used to take the Auto column's whole natural width, and in a narrow window (1280 px)
+                     that left the filter box a few pixels wide while the text ran off the panel. Now the box keeps a third
+                     of the row and the summary trims with an ellipsis when it does not fit. -->
+                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,2*" Margin="6,10,6,6">
+                  <TextBox PlaceholderText="{Binding ActorFilterHint}" FontSize="12.5" Padding="7,4"
+                           Text="{Binding ActorFilter, Mode=TwoWay}"/>
+                  <TextBlock Grid.Column="1" Classes="num" Margin="10,0,2,0" VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis" Text="{Binding SublevelTitle}"/>
+                </Grid>
+
+                <Border DockPanel.Dock="Top" Margin="6,0,6,8" Padding="0,0,0,4"
+                        BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+                  <ItemsControl ItemsSource="{Binding LayerChips}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:LayerChip">
+                        <ToggleButton Classes="chip" IsChecked="{Binding IsOn, Mode=TwoWay}">
+                          <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Ellipse Width="7" Height="7" Fill="{Binding Dot}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Label}" FontSize="11.5"/>
+                          </StackPanel>
+                        </ToggleButton>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </Border>
+
+                <TreeView Name="ActorsTree" ItemsSource="{Binding ActorTree}" Background="Transparent"
+                          Margin="2,0,2,4" BorderThickness="0" SelectionChanged="OnActorSelected"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                  <TreeView.ItemTemplate>
+                    <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="vm:Node">
+                      <Grid ColumnDefinitions="Auto,*,Auto,250,210,Auto" HorizontalAlignment="Stretch">
+                        <Ellipse Grid.Column="0" Width="7" Height="7" Margin="0,0,9,0" VerticalAlignment="Center"
+                                 Fill="{Binding Dot}" IsVisible="{Binding HasDot}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="12.5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <Border Grid.Column="2" IsVisible="{Binding Edited}" Background="{DynamicResource EditedBg}"
+                                BorderBrush="{DynamicResource EditedLine}" BorderThickness="1" CornerRadius="8"
+                                Padding="7,1" Margin="8,0">
+                          <TextBlock Text="moved" FontSize="10.5" Foreground="{DynamicResource Edited}"/>
+                        </Border>
+                        <!-- THE MESH IS THE NAME A PERSON KNOWS. An actor is called
+                             BitReactorStaticMeshActor_4; what they can see is SM_Hub_LockerLarge_A. -->
+                        <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Mesh}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" Margin="10,0,0,0"/>
+                        <TextBlock Grid.Column="4" Classes="num" Text="{Binding Class}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Faint}" TextTrimming="CharacterEllipsis" Margin="10,0,0,0"/>
+                        <TextBlock Grid.Column="5" Classes="num" Text="{Binding Detail}" VerticalAlignment="Center"
+                                   Margin="10,0,4,0"/>
+                      </Grid>
+                    </TreeDataTemplate>
+                  </TreeView.ItemTemplate>
+                </TreeView>
+              </DockPanel>
+            </TabItem>
+
+
+            <TabItem Name="ViewTab" Header="3D viewport" FontSize="13">
+              <Border Margin="12" CornerRadius="4" Background="{DynamicResource ViewportBg}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1" ClipToBounds="True">
+                <Panel>
+                  <vm:Viewport Name="Gl"/>
+
+                  <!--
+                    THE CONTROLS, WRITTEN DOWN. Keys that work and are not discoverable are the
+                    same as keys that do not work — this whole feature was asked for as "I can't
+                    use W A S D", and a viewport that never said it had any is why.
+                    The TEXT is click-through so it cannot swallow a click meant for the level;
+                    the backdrop dial below it is not, because that one is meant to be used.
+                  -->
+                  <Border VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10"
+                          Padding="10,6" CornerRadius="3"
+                          Background="{DynamicResource Chrome}" Opacity="0.85"
+                          BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                    <StackPanel Spacing="3">
+                      <TextBlock Classes="num" MaxWidth="470" TextWrapping="Wrap" LineHeight="17"
+                                 IsHitTestVisible="False" Foreground="{DynamicResource Muted}"
+                                 Text="W A S D fly · Q E down/up · shift faster&#10;right-drag look · left-drag orbit · shift-drag pan&#10;wheel or middle-drag zoom · click selects"/>
+
+                      <!--
+                        WHAT THE VIEWPORT IS ACTUALLY DOING, on screen.
+
+                        A fault was chased for an hour across three instruments that each measured
+                        a real thing and answered the wrong question, because it could not be
+                        reproduced here and the only description available was what it looked like.
+                        These are the numbers that would have settled it in one message.
+                      -->
+                      <TextBlock Name="ViewStats" Classes="num" IsHitTestVisible="False" IsVisible="False"
+                                 HorizontalAlignment="Left" VerticalAlignment="Top"
+                                 Margin="14,12" Opacity="0.75" LineHeight="16"/>
+
+                      <!--
+                        THE KEYBOARD GOES WHERE THE LAST CLICK WENT. Picking a row in the level
+                        browser gives the keys to that list, and then W A S D does nothing and
+                        the viewport looks broken. Saying so is cheaper than guessing.
+                      -->
+                      <TextBlock Classes="num" Foreground="{DynamicResource Edited}"
+                                 IsHitTestVisible="False" IsVisible="{Binding !#Gl.IsFocused}"
+                                 Text="click the viewport to give it the keyboard"/>
+
+                      <!--
+                        THE DIAL LIVES WHERE IT IS DOING SOMETHING. There is no toolbar room for
+                        it and no clean line for it to default to, so it appears only once the
+                        backdrop is hidden, beside the count of what it is taking away.
+                      -->
+                      <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,3,0,0"
+                                  IsVisible="{Binding !ShowBackdrop}">
+                        <TextBlock Classes="num" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Accent}"
+                                   Text="{Binding BackdropCount, StringFormat=hiding {0:N0} beyond}"/>
+                        <Slider Width="110" Minimum="1.5" Maximum="12" TickFrequency="0.5"
+                                IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                Value="{Binding BackdropFactor, Mode=TwoWay}"/>
+                        <TextBlock Classes="num" VerticalAlignment="Center" Width="38"
+                                   Foreground="{DynamicResource Accent}"
+                                   Text="{Binding BackdropFactor, StringFormat={}{0:0.#}x}"/>
+                      </StackPanel>
+                    </StackPanel>
+                  </Border>
+                </Panel>
+              </Border>
+            </TabItem>
+            <TabItem Header="Limits" FontSize="13">
+              <Border Margin="12" CornerRadius="4" Background="{DynamicResource ViewportBg}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14" MaxWidth="640">
+                  <TextBlock Classes="cap" Text="WHAT THIS BUILD CANNOT DO" HorizontalAlignment="Center"/>
+                  <!--
+                    WRAPS, because it no longer fits on one line. It did when it named two things;
+                    it names four now, and a headline that runs off the right edge of the panel is
+                    the app failing the check this very tab exists to make.
+                  -->
+                  <TextBlock FontSize="17" HorizontalAlignment="Center" TextAlignment="Center"
+                             TextWrapping="Wrap" MaxWidth="620"
+                             Text="Moving an actor, changing what it draws, ADDING one and building it into the game are all confirmed in game. Everything below is not."/>
+                  <!--
+                    THE MIDDLE CASE, and it gets its own line because the other two are honest and
+                    lumping it in with either would not be. Rotate and scale are BUILT: rings and
+                    handles in the viewport, written by the build through the same path a move
+                    takes, read back by the verifier. Nobody has launched the game and looked.
+                  -->
+                  <TextBlock Classes="dim" HorizontalAlignment="Center" TextAlignment="Center"
+                             TextWrapping="Wrap" LineHeight="19" MaxWidth="600"
+                             Text="Rotate and scale are built and the build writes them — the gizmo turns and resizes, and the read-back checks the numbers — but nobody has launched the game and looked at one yet. Treat them as untested rather than as working."/>
+                  <TextBlock Classes="dim" TextWrapping="Wrap" TextAlignment="Center" LineHeight="19"
+                             Text="ADDING A PROPERTY to a cooked .umap is the gate most of this sits behind. An actor whose transform lives on its archetype carries no numbers of its own to overwrite, so a row marked “no transform” cannot be moved, turned or resized at all — and a Blueprint prop can be drawn perfectly and still be one of those. DELETING an actor is unproven too; pointing one at no mesh is the nearest thing that works, and it leaves the actor in the level drawing nothing. What the asset list adds is always a COPY of an actor this level already holds, which is why nothing here authors a transform or invents a class — and a copy takes its donor's rotation and scale, because only the three location numbers are written for a new actor. A LEVEL INSTANCE is never used as a donor: its actors' coordinates are local to the building rather than to the map, so a spot picked here would not be the spot it landed in. HLOD proxies are skipped, because each one is a merged stand-in for geometry that is also in the level at full detail. The BACKDROP dial is a dial and not a rule: measured on SK_Anaxes_020, the distant cliffs use the same meshes as the near ones, so there is no clean line between a level and its backdrop and any threshold cuts somewhere arbitrary."/>
+                </StackPanel>
+              </Border>
+            </TabItem>
+          </TabControl>
+
+          </Grid>
+        </Border>
+
+        <GridSplitter Name="PropsSplitter" Grid.Column="3" Background="Transparent"/>
+
+        <!-- === PROPERTIES === -->
+        <Panel Grid.Column="4">
+          <Border Name="PropsPanel" Classes="panel">
+            <!--
+              THREE SECTIONS IN ONE COLUMN, each foldable from its own header.
+
+              The asset list began as a tab of its own and that was wrong: "switching between the
+              two tabs would be annoying", because placing something is a thing you do WHILE
+              looking at the level. A tab is a page you leave the viewport for. This column is
+              always on screen whatever the middle shows, so the list, the thing you have selected
+              and everything in the level all sit beside the 3D view instead of taking turns with
+              it.
+
+              Star rows share what is left after the headers, so folding one gives its height to
+              the others rather than to a gap.
+            -->
+            <Grid Name="PropsBody" RowDefinitions="Auto,*,4,Auto,0,4,Auto,*">
+
+              <!-- ============================ ASSETS ============================ -->
+              <Border Grid.Row="0" Padding="12,9" Background="{DynamicResource Chrome}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1"
+                      PointerPressed="OnToggleAssets" Cursor="Hand"
+                      ToolTip.Tip="Everything this level loads, once each. Pick one and put another down.">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Name="AssetsChevron" Text="&#x25BE;" FontSize="11" Margin="0,0,8,0"
+                             VerticalAlignment="Center" Foreground="{DynamicResource Muted}"/>
+                  <TextBlock Grid.Column="1" Classes="cap" Text="{Binding AssetTitle}"
+                             VerticalAlignment="Center"/>
+                  <Button Grid.Column="2" Classes="tiny" Content="&#xBB;" Click="OnToggleProps"
+                          VerticalAlignment="Center" ToolTip.Tip="Collapse this panel"/>
+                </Grid>
+              </Border>
+
+              <DockPanel Grid.Row="1" Name="AssetsBody">
+                <!--
+                  THE LEVEL IS NOT THE LIMIT. An asset the level already places can be copied with
+                  no import at all, which is the better route and so the default. But adding an
+                  import is proven (an Umbaran plant, in the hub, drawing a mesh the hub had never
+                  referenced), so anything in the game can be placed in any map and a list that
+                  stopped at one level would be smaller than the technique.
+                -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6"
+                            Margin="12,8,12,0">
+                  <RadioButton Classes="chip" GroupName="assetScope" Content="This level"
+                               IsChecked="{Binding ThisLevelOnly, Mode=OneWay}" Click="OnAssetScope"
+                               ToolTip.Tip="Only what this map already loads. Placing one of these copies an actor that already draws it, so the .umap grows by one actor and nothing else."/>
+                  <RadioButton Classes="chip" GroupName="assetScope" Content="Whole game"
+                               IsChecked="{Binding WholeGame, Mode=OneWay}" Click="OnAssetScope"
+                               ToolTip.Tip="Every static mesh in the game. Placing one of these also adds an import, which is the route the Umbaran plant took into the hub."/>
+                  <TextBlock Classes="num" VerticalAlignment="Center" Text="reading the index&#x2026;"
+                             IsVisible="{Binding GameAssetsBusy}" Foreground="{DynamicResource Accent}"/>
+                </StackPanel>
+
+                <TextBox DockPanel.Dock="Top" Text="{Binding AssetFilter, Mode=TwoWay}" FontSize="12"
+                         Padding="6,3" Margin="12,8,12,6"
+                         PlaceholderText="Filter by name, folder or sublevel&#x2026;"/>
+
+              <!--
+                DOCKED TO THE BOTTOM of the section rather than floating beside the row it acts
+                on: what it says changes while a donor is being looked for, and a message that
+                moves with the selection is a message nobody reads. Stacked rather than laid out
+                beside the button, because this is a column now and side by side squeezed both.
+              -->
+              <Border DockPanel.Dock="Bottom" IsVisible="{Binding HasAsset}" Margin="10,6,10,8"
+                      Padding="12,10" CornerRadius="4" Background="{DynamicResource Chrome}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                <StackPanel Spacing="5">
+                  <TextBlock Text="{Binding AssetName}" FontSize="14" FontWeight="SemiBold"
+                             TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Classes="mono" Text="{Binding AssetPath}" TextWrapping="Wrap"
+                             MaxLines="2" TextTrimming="CharacterEllipsis"
+                             Foreground="{DynamicResource Muted}"/>
+
+                  <!-- WHAT PICKING IT DID, or why it could not. One of the two. -->
+                  <TextBlock Classes="dim" TextWrapping="Wrap" LineHeight="17" Margin="0,3,0,0"
+                             IsVisible="{Binding CanPlace}" Text="{Binding PlaceHow}"/>
+                  <TextBlock Classes="dim" TextWrapping="Wrap" LineHeight="17" Margin="0,3,0,0"
+                             IsVisible="{Binding !CanPlace}" Text="{Binding PlaceWhy}"
+                             Foreground="{DynamicResource Faint}"/>
+
+                  <!--
+                    PICKING THE ROW ALREADY PUT ONE DOWN, on the gizmo. This is for a SECOND
+                    copy, and the button says "another" because pressing it and getting one more
+                    is what somebody expects when one is already in front of them.
+                  -->
+                  <Button Classes="primary" Content="Place another at the camera" FontSize="13"
+                          Padding="14,7" Margin="0,4,0,0" HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Center"
+                          Click="OnPlaceAsset" IsEnabled="{Binding CanPlace}"
+                          ToolTip.Tip="Another copy of this asset, wherever the 3D viewport is looking. Picking the asset already placed one - drag that with the gizmo."/>
+                  <TextBlock Classes="num" HorizontalAlignment="Center" Text="looking for a donor&#x2026;"
+                             IsVisible="{Binding PlaceBusy}" Foreground="{DynamicResource Faint}"/>
+                </StackPanel>
+              </Border>
+
+                <TextBlock DockPanel.Dock="Top" Classes="dim" Margin="14,10" TextWrapping="Wrap"
+                           IsVisible="{Binding AssetsEmpty}" Text="{Binding AssetHint}"/>
+
+              <!--
+                A TREE WHILE BROWSING, A LIST WHILE SEARCHING. The folder is the game's own
+                taxonomy and the only thing that makes two thousand assets navigable; a filter
+                flattens, because a match four folders deep is a match you would still have to go
+                and open.
+              -->
+              <TreeView Name="AssetList" ItemsSource="{Binding AssetTree}" Background="Transparent"
+                        SelectionChanged="OnAssetSelected" BorderThickness="0" Padding="0"
+                        Margin="2,0,2,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <TreeView.ItemTemplate>
+                  <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="vm:AssetTreeNode">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" Margin="2,1">
+                      <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Title}"
+                                 FontSize="12.5" TextTrimming="CharacterEllipsis"/>
+                      <TextBlock Grid.Column="1" Grid.Row="0" Classes="num" Text="{Binding Detail}"
+                                 Margin="10,0,4,0" Foreground="{DynamicResource Faint}"/>
+                      <!-- A folder has no second line, and an empty row would still take height. -->
+                      <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Classes="num"
+                                 Text="{Binding Sub}" IsVisible="{Binding IsAsset}"
+                                 TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource Muted}"/>
+                    </Grid>
+                  </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+              </TreeView>
+              </DockPanel>
+
+              <GridSplitter Grid.Row="2" Name="AssetsSplitter" Background="Transparent"
+                            ResizeDirection="Rows"/>
+
+              <!-- ============================ SELECTED ============================ -->
+              <Border Grid.Row="3" Padding="12,9" Background="{DynamicResource Chrome}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,1"
+                      PointerPressed="OnToggleDetail" Cursor="Hand">
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Name="DetailChevron" Text="&#x25BE;" FontSize="11" Margin="0,0,8,0"
+                             VerticalAlignment="Center" Foreground="{DynamicResource Muted}"/>
+                  <StackPanel Grid.Column="1" Spacing="2">
+                    <TextBlock Text="{Binding ActorName}" FontSize="14" FontWeight="SemiBold"
+                               IsVisible="{Binding HasActor}"/>
+                    <TextBlock Classes="num" Text="{Binding ActorSub}" IsVisible="{Binding HasActor}"/>
+                    <TextBlock Text="Nothing selected" FontSize="14" FontWeight="SemiBold"
+                               IsVisible="{Binding !HasActor}"/>
+                    <TextBlock Classes="num" IsVisible="{Binding !HasActor}"
+                               Text="pick anything from the list below"/>
+                  </StackPanel>
+                </Grid>
+              </Border>
+
+              <!--
+                STARTS HIDDEN, because its row starts at zero height and a zero-height row does not
+                clip what is inside it. ShowDetail turns both on together when something is picked.
+              -->
+              <ScrollViewer Grid.Row="4" Name="DetailBody" IsVisible="False"
+                            HorizontalScrollBarVisibility="Disabled"
+                            VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="12,10" Spacing="10">
+
+                  <Border Background="{DynamicResource InfoBg}" BorderBrush="{DynamicResource EditedLine}"
+                          BorderThickness="1" CornerRadius="3">
+                    <Grid ColumnDefinitions="3,*">
+                      <Border Background="{DynamicResource Edited}"/>
+                      <StackPanel Grid.Column="1" Margin="11,8" Spacing="4">
+                        <TextBlock Classes="cap" Text="TRANSFORM READ FROM" Foreground="{DynamicResource Edited}"/>
+                        <TextBlock Classes="dim" TextWrapping="Wrap" LineHeight="18" Text="{Binding TransformSource}"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+
+                  <!--
+                    WHY IT IS HERE. Five mechanisms can put a thing in the wrong place and the
+                    author's eye finds one in seconds; turning that into a diagnosis used to take
+                    an hour of eliminating them one at a time.
+                  -->
+                  <Expander Header="Why it is here" IsExpanded="True" IsVisible="{Binding HasWhy}">
+                    <ItemsControl ItemsSource="{Binding Why}" Margin="0,6,0,0">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PropRow">
+                          <Border Padding="0,5" BorderBrush="{DynamicResource RowLine}" BorderThickness="0,0,0,1">
+                            <StackPanel Spacing="2">
+                              <TextBlock Classes="cap" Text="{Binding Name}"/>
+                              <TextBlock Classes="mono" FontSize="11" Text="{Binding Value}"
+                                         TextWrapping="Wrap" LineHeight="15"/>
+                            </StackPanel>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Expander>
+
+                  <Expander Header="Transform" IsExpanded="True" IsVisible="{Binding HasTransform}">
+                    <StackPanel Spacing="7" Margin="0,6,0,0">
+                      <TextBlock Classes="cap" Text="LOCATION   (cm)"/>
+                      <Grid ColumnDefinitions="14,*,8,14,*,8,14,*">
+                        <TextBlock Grid.Column="0" Classes="num" Text="X" VerticalAlignment="Center" Foreground="{DynamicResource AxisX}"/>
+                        <NumericUpDown Grid.Column="1" Value="{Binding LocX, Mode=TwoWay}" FormatString="0.000" Increment="10" ShowButtonSpinner="False"/>
+                        <TextBlock Grid.Column="3" Classes="num" Text="Y" VerticalAlignment="Center" Foreground="{DynamicResource AxisY}"/>
+                        <NumericUpDown Grid.Column="4" Value="{Binding LocY, Mode=TwoWay}" FormatString="0.000" Increment="10" ShowButtonSpinner="False"/>
+                        <TextBlock Grid.Column="6" Classes="num" Text="Z" VerticalAlignment="Center" Foreground="{DynamicResource AxisZ}"/>
+                        <NumericUpDown Grid.Column="7" Value="{Binding LocZ, Mode=TwoWay}" FormatString="0.000" Increment="10" ShowButtonSpinner="False"/>
+                      </Grid>
+                      <TextBlock Classes="cap" Text="ROTATION   (degrees)" Margin="0,2,0,0"/>
+                      <Grid ColumnDefinitions="14,*,8,14,*,8,14,*">
+                        <TextBlock Grid.Column="0" Classes="num" Text="P" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Column="1" Value="{Binding RotP, Mode=TwoWay}" FormatString="0.###" Increment="5" ShowButtonSpinner="False"/>
+                        <TextBlock Grid.Column="3" Classes="num" Text="Y" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Column="4" Value="{Binding RotY, Mode=TwoWay}" FormatString="0.###" Increment="5" ShowButtonSpinner="False"/>
+                        <TextBlock Grid.Column="6" Classes="num" Text="R" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Column="7" Value="{Binding RotR, Mode=TwoWay}" FormatString="0.###" Increment="5" ShowButtonSpinner="False"/>
+                      </Grid>
+
+                      <TextBlock Classes="cap" Text="SCALE" Margin="0,2,0,0"/>
+                      <Grid ColumnDefinitions="14,*,8,14,*,8,14,*">
+                        <TextBlock Grid.Column="0" Classes="num" Text="X" VerticalAlignment="Center" Foreground="{DynamicResource AxisX}"/>
+                        <NumericUpDown Grid.Column="1" Value="{Binding SclX, Mode=TwoWay}" FormatString="0.###" Increment="0.1" ShowButtonSpinner="False"/>
+                        <TextBlock Grid.Column="3" Classes="num" Text="Y" VerticalAlignment="Center" Foreground="{DynamicResource AxisY}"/>
+                        <NumericUpDown Grid.Column="4" Value="{Binding SclY, Mode=TwoWay}" FormatString="0.###" Increment="0.1" ShowButtonSpinner="False"/>
+                        <TextBlock Grid.Column="6" Classes="num" Text="Z" VerticalAlignment="Center" Foreground="{DynamicResource AxisZ}"/>
+                        <NumericUpDown Grid.Column="7" Value="{Binding SclZ, Mode=TwoWay}" FormatString="0.###" Increment="0.1" ShowButtonSpinner="False"/>
+                      </Grid>
+                    </StackPanel>
+                  </Expander>
+
+                  <!--
+                    WHAT IT DRAWS. The other half of a move: four bytes naming an import, so the
+                    package never grows. The list can only offer meshes THIS SUBLEVEL ALREADY
+                    REFERENCES, which is the real limit of the technique and not a UI choice, so
+                    it is said in the panel rather than discovered at build time.
+                  -->
+                  <Expander Header="Draws" IsExpanded="True">
+                    <StackPanel Spacing="7" Margin="0,6,0,0">
+
+                      <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding CanSwap}">
+                        <TextBlock Classes="mono" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource Edited}" Text="{Binding DrawsNow}"/>
+                        <Button Grid.Column="1" Classes="ghost" Content="Remove it" FontSize="11"
+                                Padding="9,2" Click="OnRemoveMesh"
+                                ToolTip.Tip="Draw no mesh at all — this is how an actor is taken out of a shipped level"/>
+                      </Grid>
+
+                      <TextBlock Classes="dim" TextWrapping="Wrap" LineHeight="18"
+                                 IsVisible="{Binding NoSwap}" Text="{Binding SwapWhy}"/>
+
+                      <StackPanel Spacing="5" IsVisible="{Binding CanSwap}">
+                        <TextBlock Classes="cap" Text="{Binding MeshTitle}" Margin="0,2,0,0"/>
+                        <TextBox Text="{Binding MeshFilter, Mode=TwoWay}" FontSize="12" Padding="6,3"
+                                 PlaceholderText="Filter the meshes this level already uses…"/>
+                        <ListBox Name="MeshList" Classes="rows" ItemsSource="{Binding MeshChoices}"
+                                 SelectionChanged="OnMeshPicked" Background="Transparent"
+                                 MaxHeight="220" BorderThickness="1"
+                                 BorderBrush="{DynamicResource Line}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                          <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                              <TextBlock Classes="mono" Text="{Binding}" TextTrimming="CharacterEllipsis"/>
+                            </DataTemplate>
+                          </ListBox.ItemTemplate>
+                        </ListBox>
+                      </StackPanel>
+                    </StackPanel>
+                  </Expander>
+
+                  <Expander Header="Serialised properties" IsExpanded="True">
+                    <ItemsControl ItemsSource="{Binding Props}" Margin="0,6,0,0">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PropRow">
+                          <Border Padding="0,4" BorderBrush="{DynamicResource RowLine}" BorderThickness="0,0,0,1">
+                            <Grid ColumnDefinitions="150,*">
+                              <TextBlock Classes="dim" Text="{Binding Name}" TextWrapping="Wrap"/>
+                              <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Value}" TextWrapping="Wrap"/>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Expander>
+
+                </StackPanel>
+              </ScrollViewer>
+
+              <GridSplitter Grid.Row="5" Name="BrowseSplitter" Background="Transparent"
+                            ResizeDirection="Rows" IsVisible="False"/>
+
+              <!-- ============================ EVERYTHING ============================ -->
+              <Border Grid.Row="6" Padding="12,9" Background="{DynamicResource Chrome}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,1"
+                      PointerPressed="OnToggleBrowse" Cursor="Hand">
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Name="BrowseChevron" Text="&#x25BE;" FontSize="11" Margin="0,0,8,0"
+                             VerticalAlignment="Center" Foreground="{DynamicResource Muted}"/>
+                  <TextBlock Grid.Column="1" Classes="cap" Text="{Binding BrowseTitle}"
+                             VerticalAlignment="Center"/>
+                </Grid>
+              </Border>
+
+              <DockPanel Grid.Row="7" Name="BrowseBody">
+                <TextBox DockPanel.Dock="Top" Text="{Binding BrowseFilter, Mode=TwoWay}" FontSize="12"
+                         Padding="6,3" Margin="12,8,12,6"
+                         PlaceholderText="Filter by name, class, mesh or sublevel&#x2026;"/>
+
+                <TextBlock DockPanel.Dock="Top" Classes="dim" Margin="14,10" TextWrapping="Wrap"
+                           IsVisible="{Binding BrowseEmpty}" Text="{Binding BrowseHint}"/>
+
+                <ListBox Name="BrowseList" Classes="rows" ItemsSource="{Binding Browse}"
+                         SelectionChanged="OnBrowseSelected" Background="Transparent"
+                         BorderThickness="0" Padding="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:BrowseRow">
+                      <Grid ColumnDefinitions="3,9,*,Auto" RowDefinitions="Auto,Auto">
+                        <Border Grid.Column="0" Grid.RowSpan="2" CornerRadius="2"
+                                Background="{Binding Dot}" VerticalAlignment="Stretch" Margin="0,1"/>
+                        <!--
+                          The name takes column 2 alone. Spanning it under the Auto column put the
+                          marker ON TOP of the name for every unmovable row; an Auto column that
+                          holds a hidden child is already zero wide, so there is nothing to reclaim.
+                        -->
+                        <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding Name}"
+                                   FontSize="12.5" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="3" Grid.Row="0" Classes="num" Text="no transform"
+                                   IsVisible="{Binding !Movable}" Margin="10,0,0,0"
+                                   Foreground="{DynamicResource Faint}"
+                                   ToolTip.Tip="This actor sits at its archetype's position, so the package holds no number to write over. Moving it would mean ADDING a property to a cooked .umap, which is not proven."/>
+                        <TextBlock Grid.Column="2" Grid.Row="1" Classes="num"
+                                   Text="{Binding What}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="3" Grid.Row="1" Classes="num" Text="{Binding Sublevel}"
+                                   MaxWidth="168" TextTrimming="CharacterEllipsis" Margin="10,0,0,0"
+                                   Foreground="{DynamicResource Faint}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </DockPanel>
+
+            </Grid>
+          </Border>
+          <Border Name="PropsStrip" Classes="panel" IsVisible="False">
+            <Button Classes="tiny" Content="«" Click="OnToggleProps" VerticalAlignment="Top"
+                    HorizontalAlignment="Center" Margin="0,9,0,0" ToolTip.Tip="Show properties"/>
+          </Border>
+        </Panel>
+      </Grid>
+
+      <GridSplitter Name="DockSplitter" Grid.Row="1" Background="Transparent" HorizontalAlignment="Stretch"/>
+
+      <!-- === BOTTOM DOCK === -->
+      <Panel Grid.Row="2">
+        <Border Name="DockFull" Classes="panel">
+          <DockPanel>
+            <Border DockPanel.Dock="Top" Padding="12,7" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="cap" Text="{Binding ChangesTitle}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Classes="tiny" Content="▾" Click="OnToggleDock" ToolTip.Tip="Collapse"/>
+              </Grid>
+            </Border>
+            <TabControl Name="DockTabs" Padding="0" Margin="6,0,6,6">
+              <TabItem Header="Changes" FontSize="12.5">
+                <DockPanel>
+                  <TextBlock DockPanel.Dock="Top" Classes="dim" Margin="10,8,10,4" TextWrapping="Wrap"
+                             IsVisible="{Binding !HasProject}"
+                             Text="Open a mod project to record changes into it. Nothing is written to the game until you press Build and install, and nothing is installed unless it reads back clean."/>
+                  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                   <StackPanel>
+                    <!--
+                      NEW ACTORS FIRST. They are the only edits here that make the .umap grow, and
+                      the only ones with numbers still worth typing into, so they read as a
+                      section of their own rather than as three more rows of the same shape.
+                    -->
+                    <ItemsControl ItemsSource="{Binding Spawns}" Margin="10,4">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PendingSpawn">
+                          <Border Padding="0,5" BorderBrush="{DynamicResource RowLine}" BorderThickness="0,0,0,1">
+                            <!--
+                              LEFT-PACKED, with only the Remove button pushed right. The elastic
+                              column used to sit in the middle, which at 2560 wide left a hand's
+                              width of nothing between what the row says and the numbers it is
+                              about.
+                            -->
+                            <Grid ColumnDefinitions="180,230,250,Auto,Auto,60,*">
+                              <TextBlock Classes="num" Text="{Binding Sublevel}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"/>
+                              <TextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Center"
+                                         Text="{Binding Name}" TextTrimming="CharacterEllipsis"
+                                         Foreground="{DynamicResource Edited}"/>
+                              <TextBlock Grid.Column="2" Classes="num" Text="{Binding How}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+
+                              <!-- The position, typed. The same eight bytes a gizmo drag writes. -->
+                              <Grid Grid.Column="3" ColumnDefinitions="11,92,6,11,92,6,11,92" Margin="0,0,10,0">
+                                <TextBlock Grid.Column="0" Classes="num" Text="X" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource AxisX}"/>
+                                <NumericUpDown Grid.Column="1" Value="{Binding X, Mode=TwoWay}"
+                                               FormatString="0.###" Increment="10" ShowButtonSpinner="False"/>
+                                <TextBlock Grid.Column="3" Classes="num" Text="Y" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource AxisY}"/>
+                                <NumericUpDown Grid.Column="4" Value="{Binding Y, Mode=TwoWay}"
+                                               FormatString="0.###" Increment="10" ShowButtonSpinner="False"/>
+                                <TextBlock Grid.Column="6" Classes="num" Text="Z" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource AxisZ}"/>
+                                <NumericUpDown Grid.Column="7" Value="{Binding Z, Mode=TwoWay}"
+                                               FormatString="0.###" Increment="10" ShowButtonSpinner="False"/>
+                              </Grid>
+
+                              <Button Grid.Column="4" Classes="ghost" Content="To camera" FontSize="11"
+                                      Padding="9,1" Click="OnSpawnToCamera" Margin="0,0,10,0"
+                                      ToolTip.Tip="Move it to where the 3D viewport is looking now"/>
+                              <TextBlock Grid.Column="5" Classes="num" Text="saved" VerticalAlignment="Center"
+                                         IsVisible="{Binding Saved}"/>
+                              <Button Grid.Column="6" Classes="ghost" Content="Remove" FontSize="11" Padding="9,1"
+                                      HorizontalAlignment="Right" Click="OnRevertSpawn"/>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding Swaps}" Margin="10,4">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PendingSwap">
+                          <Border Padding="0,4" BorderBrush="{DynamicResource RowLine}" BorderThickness="0,0,0,1">
+                            <!--
+                              A move's summary is "0.000 -> 1.000" and fits anywhere. A swap's is
+                              two asset names, so the elastic column goes HERE and the Revert
+                              button sizes to itself; the move row's widths are left alone.
+                            -->
+                            <Grid ColumnDefinitions="180,230,250,*,60,Auto">
+                              <TextBlock Classes="num" Text="{Binding Sublevel}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"/>
+                              <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Actor}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"/>
+                              <TextBlock Grid.Column="2" Classes="num" Text="{Binding Path}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"/>
+                              <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Summary}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"
+                                         Foreground="{DynamicResource Edited}"/>
+                              <TextBlock Grid.Column="4" Classes="num" Text="saved" VerticalAlignment="Center"
+                                         IsVisible="{Binding Saved}"/>
+                              <Button Grid.Column="5" Classes="ghost" Content="Revert" FontSize="11" Padding="9,1"
+                                      HorizontalAlignment="Right" Click="OnRevertSwap"/>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding Changes}" Margin="10,4">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PendingMove">
+                          <Border Padding="0,4" BorderBrush="{DynamicResource RowLine}" BorderThickness="0,0,0,1">
+                            <Grid ColumnDefinitions="180,230,250,160,60,*">
+                              <TextBlock Classes="num" Text="{Binding Sublevel}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"/>
+                              <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Actor}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"/>
+                              <TextBlock Grid.Column="2" Classes="num" Text="{Binding Path}" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"/>
+                              <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Summary}" VerticalAlignment="Center"
+                                         Foreground="{DynamicResource Edited}"/>
+                              <TextBlock Grid.Column="4" Classes="num" Text="saved" VerticalAlignment="Center"
+                                         IsVisible="{Binding Saved}"/>
+                              <Button Grid.Column="5" Classes="ghost" Content="Revert" FontSize="11" Padding="9,1"
+                                      HorizontalAlignment="Right" Click="OnRevert"/>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                   </StackPanel>
+                  </ScrollViewer>
+                </DockPanel>
+              </TabItem>
+              <TabItem Header="Classes" FontSize="12.5">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                  <ItemsControl ItemsSource="{Binding Classes}" Margin="6,4">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ClassRow">
+                        <Border Width="392" Padding="6,3" Margin="0,0,6,2">
+                          <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Ellipse Width="7" Height="7" Fill="{Binding Dot}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Name}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Classes="num" Text="{Binding Count}" VerticalAlignment="Center"/>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </TabItem>
+              <TabItem Name="StoryTab" Header="Story" FontSize="12.5">
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Top" Margin="10,8,10,4" Spacing="4">
+                    <TextBlock Text="{Binding FactsTitle}" FontWeight="SemiBold"/>
+                    <TextBlock Classes="dim num" TextWrapping="Wrap" Text="{Binding FactsVerdict}"/>
+                    <TextBlock Classes="dim" TextWrapping="Wrap"
+                               Text="These are the game's own conditions, read out of the level. Tick a fact to see the variant it switches on. Nothing here is a guess at a name."/>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,0">
+                      <Button Content="New game (none set)" Click="OnFactsNone" FontSize="12"/>
+                      <Button Content="Set all of this level's" Click="OnFactsAll" FontSize="12"/>
+                    </StackPanel>
+                  </StackPanel>
+                  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding FactRows}" Margin="10,4">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FactRow">
+                          <StackPanel Margin="0,3">
+                            <CheckBox IsChecked="{Binding On, Mode=TwoWay}" Click="OnFactToggled"
+                                      Content="{Binding Title}" FontSize="12.5"/>
+                            <TextBlock Classes="dim num" FontSize="11" Margin="24,0,0,0"
+                                       TextWrapping="Wrap" Text="{Binding Rule}"/>
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </ScrollViewer>
+                </DockPanel>
+              </TabItem>
+              <TabItem Name="LogTab" Header="Log" FontSize="12.5">
+                <ScrollViewer Name="LogScroll">
+                  <ItemsControl ItemsSource="{Binding Log}" Margin="8,4">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="x:String">
+                        <TextBlock Classes="num" Text="{Binding}" TextWrapping="Wrap"/>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </TabItem>
+            </TabControl>
+          </DockPanel>
+        </Border>
+        <Border Name="DockStrip" Classes="panel" IsVisible="False">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="cap" Text="{Binding ClassesTitle}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            <Button Grid.Column="1" Classes="tiny" Content="▴" Click="OnToggleDock" Margin="0,0,10,0"
+                    VerticalAlignment="Center" ToolTip.Tip="Show"/>
+          </Grid>
+        </Border>
+      </Panel>
+    </Grid>
+  </DockPanel>
+</Window>

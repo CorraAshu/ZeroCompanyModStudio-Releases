@@ -1,0 +1,44 @@
+diff --git a/CUE4Parse-Conversion/Meshes/MeshConverter.cs b/CUE4Parse-Conversion/Meshes/MeshConverter.cs
+index d71b9eb8..dfae8605 100644
+--- a/CUE4Parse-Conversion/Meshes/MeshConverter.cs
++++ b/CUE4Parse-Conversion/Meshes/MeshConverter.cs
+@@ -24,6 +24,19 @@ namespace CUE4Parse_Conversion.Meshes;
+ 
+ public static class MeshConverter
+ {
++    /// <summary>
++    /// LOCAL PATCH (UEToolkit). Force a full GC after each Nanite conversion.
++    ///
++    /// True preserves FModel's behaviour, which converts one asset per click and wants the memory
++    /// back immediately. Set false for batch work: the collection is per mesh and its cost scales
++    /// with the entire live heap, so a long run degrades continuously — measured at roughly one
++    /// gen2 collection per mesh across a 12,408-mesh scan, on a heap that never grew.
++    ///
++    /// Turning it off does not leak. The page references are dropped either way; only the timing
++    /// of the collection changes, and the GC is better placed than we are to choose it.
++    /// </summary>
++    public static bool AggressiveGarbageCollection = true;
++
+     
+     public static bool TryConvert(this USkeleton originalSkeleton, out List<CSkelMeshBone> bones, out FBox box)
+     {
+@@ -367,7 +380,18 @@ void writeToTriBuffer(uint matIndex, uint triStart, uint triLength)
+         {
+             nanite.LoadedPages[i] = null;
+         }
+-        GC.Collect();
++        // LOCAL PATCH (UEToolkit): the Collect below is now opt-out. Dropping the page references
++        // above is what actually frees the memory; the forced collection only decides WHEN.
++        //
++        // It is right for FModel, which converts one asset at a time in response to a click. It is
++        // ruinous for a batch: a full blocking gen2 collection per mesh, whose cost scales with the
++        // whole live heap, so a run gets slower the longer it goes. Measured over a 12,408-mesh
++        // scan -- 170 gen2 collections by mesh 256, 1,904 by mesh 2,304, roughly one per mesh, on a
++        // heap that stays flat at ~200 MB. The same 256 meshes take 1.8 minutes scanned fresh and
++        // over 60 minutes once the process has walked a few thousand before them.
++        //
++        // Default stays true so FModel's behaviour is unchanged; batch callers turn it off.
++        if (AggressiveGarbageCollection) GC.Collect();
+ 
+         outMesh.IsNanite = true;
+         staticMeshLod = outMesh;

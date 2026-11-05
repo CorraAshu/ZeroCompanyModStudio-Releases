@@ -1,0 +1,123 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ZeroCompanyModStudioAvalonia"
+        x:Class="ZeroCompanyModStudioAvalonia.ExtractWindow"
+        Title="Extract a folder"
+        Width="660" Height="680" MinWidth="560" MinHeight="470"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Ground}">
+
+  <!--
+    EXTRACT A WHOLE FOLDER, in his words: "right click a folder in the data explorer and see a
+    extract... a window pops up that will let you pick the location you want to extract and give
+    you options for mesh format, PSK,FBX....etc and same for textures and animations. Then it will
+    dump the full folder to your selected folder with the same file structure shown in the data
+    explorer".
+
+    ALMOST NONE OF THIS IS NEW MACHINERY, which is the point. BatchExporter.ExportPaths already
+    walks a list of assets with progress and a cancel; AppSettings already holds every format
+    option and turns them into an ExportRequest; and the exporter already writes by package path,
+    so mirroring the explorer's structure costs nothing. What was missing was a way to ASK.
+
+    THE COUNT IS SHOWN BEFORE THE BUTTON IS PRESSED, and the estimate is measured from the run
+    rather than guessed at: a folder here can be four assets or fourteen thousand, and the only
+    honest thing to do with a number that big is say it first.
+  -->
+
+  <DockPanel Margin="16">
+
+    <StackPanel DockPanel.Dock="Top" Spacing="3">
+      <TextBlock Name="FolderText" FontSize="15" FontWeight="SemiBold"
+                 TextTrimming="CharacterEllipsis"
+                 Foreground="{DynamicResource Fore}"/>
+      <TextBlock Name="TallyText" FontSize="11.5" Classes="faint" TextWrapping="Wrap"/>
+    </StackPanel>
+
+    <!-- The buttons stay on the bottom edge whatever the middle does. -->
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto,Auto" Margin="0,14,0,0">
+      <TextBlock Grid.Column="0" Name="StatusText" FontSize="11.5"
+                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                 Foreground="{DynamicResource Muted}"/>
+      <Button Grid.Column="1" Name="CloseBtn" Click="OnClose" Padding="14,6" Margin="0,0,8,0">
+        <TextBlock Text="Close"/>
+      </Button>
+      <Button Grid.Column="2" Name="GoBtn" Click="OnExtract" Padding="16,6">
+        <TextBlock Text="Extract"/>
+      </Button>
+    </Grid>
+
+    <ProgressBar DockPanel.Dock="Bottom" Name="Bar" Height="4" Margin="0,12,0,0"
+                 Minimum="0" Maximum="1" IsVisible="False"/>
+
+    <!-- HORIZONTAL SCROLLING OFF, and that is the actual bug the author photographed.
+         A bare ScrollViewer measures its content at INFINITE width, so the Grid inside took its
+         natural width rather than the viewport's: the Browse button and the combo box chevrons
+         were laid out past the right edge and clipped there. Disabled constrains the content to
+         the viewport, which is what the six other scrolling lists in this application already
+         say and is why none of them do this.
+
+         The right margin is for the vertical bar. It overlays rather than reserving space, so
+         without it the bar sits on top of whatever is widest. -->
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="14" Margin="0,16,14,0">
+
+        <StackPanel Spacing="5">
+          <TextBlock Text="WHERE IT GOES" Classes="colhead"/>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBox Grid.Column="0" Name="DestBox" FontSize="12"
+                     Watermark="Pick a folder to extract into"/>
+            <Button Grid.Column="1" Click="OnBrowse" Padding="12,6" Margin="6,0,0,0">
+              <TextBlock Text="Browse…"/>
+            </Button>
+          </Grid>
+          <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap"
+                     Text="The folder tree is recreated underneath, exactly as the Data Explorer shows it."/>
+        </StackPanel>
+
+        <StackPanel Spacing="5">
+          <TextBlock Text="MESHES" Classes="colhead"/>
+          <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto" >
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Format" FontSize="12"
+                       VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" Name="MeshBox" FontSize="12"
+                      HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Detail" FontSize="12"
+                       VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="1" Grid.Column="1" Name="LodBox" FontSize="12"
+                      HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Nanite" FontSize="12"
+                       VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" Name="NaniteBox" FontSize="12"
+                      HorizontalAlignment="Stretch"/>
+          </Grid>
+          <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap"
+                     Text="OnlyNaniteLOD is source density. OnlyNormalLODs is the game's fallback shell, which is far lighter and far coarser."/>
+        </StackPanel>
+
+        <StackPanel Spacing="5">
+          <TextBlock Text="TEXTURES" Classes="colhead"/>
+          <Grid ColumnDefinitions="110,*">
+            <TextBlock Grid.Column="0" Text="Format" FontSize="12" VerticalAlignment="Center"/>
+            <ComboBox Grid.Column="1" Name="TexBox" FontSize="12" HorizontalAlignment="Stretch"/>
+          </Grid>
+          <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap"
+                     Text="TGA keeps every channel. PNG is much smaller, but its writer composites alpha into RGB, so a packed mask loses the real channel data."/>
+        </StackPanel>
+
+        <StackPanel Spacing="5">
+          <TextBlock Text="AND WITH THEM" Classes="colhead"/>
+          <CheckBox Name="MatsBox" FontSize="12">
+            <TextBlock Text="Materials, and the textures they name"/>
+          </CheckBox>
+          <CheckBox Name="MorphBox" FontSize="12">
+            <TextBlock Text="Morph targets"/>
+          </CheckBox>
+        </StackPanel>
+
+        <TextBlock Name="Errors" FontSize="11" TextWrapping="Wrap" IsVisible="False"
+                   Foreground="{DynamicResource Accent}"/>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

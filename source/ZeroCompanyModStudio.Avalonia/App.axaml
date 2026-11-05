@@ -1,0 +1,29 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ZeroCompanyModStudioAvalonia.App"
+             RequestedThemeVariant="Dark">
+  <Application.Styles>
+    <FluentTheme />
+  </Application.Styles>
+
+  <!--
+    THE COLOURS, AS RESOURCE KEYS RATHER THAN LITERALS IN THE LAYOUT.
+
+    Same values the Level Editor's Dark theme uses, so the two applications do not look like they
+    came from different places when they are open side by side. Written here as a starting point
+    rather than shared with its AppTheme table yet: that table is the whole look of the app as
+    DATA, swappable at runtime, and adopting it is worth doing deliberately once the author has
+    said what he wants this to look like — not smuggled in under a blank slate.
+  -->
+  <Application.Resources>
+    <SolidColorBrush x:Key="Ground">#12151A</SolidColorBrush>
+    <SolidColorBrush x:Key="Chrome">#171B21</SolidColorBrush>
+    <SolidColorBrush x:Key="Panel">#191D24</SolidColorBrush>
+    <SolidColorBrush x:Key="Raised">#20252E</SolidColorBrush>
+    <SolidColorBrush x:Key="Line">#2B323C</SolidColorBrush>
+    <SolidColorBrush x:Key="Fore">#DCE3EC</SolidColorBrush>
+    <SolidColorBrush x:Key="Muted">#828D9C</SolidColorBrush>
+    <SolidColorBrush x:Key="Faint">#5D6775</SolidColorBrush>
+    <SolidColorBrush x:Key="Accent">#E8A33D</SolidColorBrush>
+  </Application.Resources>
+</Application>

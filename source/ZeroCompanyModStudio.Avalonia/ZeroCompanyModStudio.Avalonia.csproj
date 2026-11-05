@@ -1,0 +1,161 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Zero Company Mod Studio, rebuilt on Avalonia.
+
+    A NEW PROJECT BESIDE THE OLD ONE, NOT A CONVERSION OF IT. The ImGui Studio was the tool the
+    author used and shipped (up to 1.6.1); it kept working and kept building for the whole of this
+    port, and nothing switched over until the replacement was actually better. From 2.0.0 THIS is
+    the Studio the download carries, under the old one's executable name (see AssemblyName below),
+    and the ImGui project stays in the solution as ZeroCompanyModStudio.Legacy, the reference for
+    behaviour and wording while the last screens are ported.
+
+    WHAT DOES NOT MOVE: UEToolkit.Core, referenced whole. 58,000 lines of project model, build,
+    verify and authoring that never knew what was drawing it. That is the entire reason this port
+    is a re-skin of a working tool rather than a rewrite of one — the hard half is already on the
+    right side of the line.
+
+    WHAT DOES NOT COME WITH IT: UEToolkit.App. It carries ImGui, AppState and the toolkit's own
+    interface, and referencing it would drag the thing being replaced into its replacement.
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!--
+      THIS IS THE STUDIO NOW: its executable is ZeroCompanyModStudio.exe, the name every guide
+      tells people to run, so unzipping a release over an old folder replaces the old Studio.
+      The ImGui project that used to own that name builds as ZeroCompanyModStudio.Legacy, so the
+      two never write the same file. Nothing in the code looks the assembly up by name (the
+      settings, the profile search and the data folder all start from AppContext.BaseDirectory,
+      which is the folder, not the file), so the rename moves nothing a person has saved.
+    -->
+    <AssemblyName>ZeroCompanyModStudio</AssemblyName>
+    <Product>Zero Company Mod Studio</Product>
+    <AssemblyTitle>Zero Company Mod Studio</AssemblyTitle>
+    <Company>Clonetrooper163</Company>
+    <Authors>Clonetrooper163</Authors>
+    <Copyright>Copyright (c) 2026 Clonetrooper163. Licensed under the GNU GPL v3.0.</Copyright>
+    <!--
+      THE VERSION IS IN TWO PLACES AND publish.ps1 REFUSES IF THEY DISAGREE: Branding.Version in
+      Program.cs (what About and the update check read) and these two elements (what Windows shows
+      on the exe's Details tab). Change all three together.
+    -->
+    <Version>2.0.0</Version>
+    <InformationalVersion>2.0.0</InformationalVersion>
+    <!--
+      Without this the SDK appends "+<commit hash>" to InformationalVersion, and the exe's Details
+      tab then reads "Product version 2.0.0+8d28296...": a number nobody downloading the Studio can
+      use, and different on every machine that builds it. (publish.ps1's check accepts both forms.)
+    -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <!--
+      The executable's own icon, the one the ImGui Studio carried: derived from the game's icon
+      and marked so the tool and the game are not the same picture in a taskbar (see
+      tools/studioicon.py). Linked from that project rather than copied, like the guides below.
+    -->
+    <ApplicationIcon>..\ZeroCompanyModStudio\ZeroCompanyModStudio.ico</ApplicationIcon>
+    <!-- The linked renderer pins buffers to hand GL raw pointers, as any GL code must. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UEToolkit.Core\UEToolkit.Core.csproj" />
+  </ItemGroup>
+
+  <!--
+    The Studio's developer command line - the flags that open a project, click through a tab,
+    dump a mesh or photograph a viewport without a mouse (about three thousand lines of driver in
+    MainWindow, App and ModelView) - is testing scaffolding and has no business in a release. It
+    sits behind "#if DEV", gated the same way UEToolkit.App's harness is, so the two projects
+    answer to one switch.
+
+    Presence of ../dev/ is what enables it, rather than a build configuration anyone has to
+    remember to pass. Locally the folder exists, DEV is defined, and every flag works - agents
+    drive this Studio headless with them. On a fresh clone of the public source the folder is
+    absent, DEV is not defined, and the driver compiles away, so the checkout BUILDS rather than
+    failing on something it was never given.
+
+    A RELEASE CAN TURN IT OFF, which the folder test alone could not: on THIS machine the folder
+    always exists, so a publish from here shipped the whole driver in ZeroCompanyModStudio.dll
+    while publish.ps1's DevHarness=false property only reached the other project. publish.ps1
+    passes it for both now, and searches the published dll for the flag names before it calls a
+    stage publishable.
+  -->
+  <PropertyGroup Condition="'$(DevHarness)' != 'false' And Exists('$(MSBuildProjectDirectory)\..\dev')">
+    <DefineConstants>$(DefineConstants);DEV</DefineConstants>
+  </PropertyGroup>
+
+  <!--
+    THE GUIDES, LINKED FROM THE ImGui STUDIO RATHER THAN COPIED. Same rule as the renderer above:
+    never a second copy of the source. Two copies of a handbook can disagree about the tool, which
+    is worse than having none, and the whole point of item five on the author's list is that they
+    describe the right Studio.
+
+    They are carried locally so the menu works with no network; the published link is only the
+    fallback, because a local copy is never newer than the build it shipped with.
+  -->
+  <ItemGroup>
+    <Content Include="..\ZeroCompanyModStudio\Guides\*.html"
+             Link="Guides\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    THE PROFILE TEMPLATE, LINKED FOR THE SAME REASON. The first run (UEToolkit.Core's GameSetup)
+    makes the user's own profile from it: this file with PaksDirectory and MappingsFile filled in,
+    saved as settings/active-profile.json. Without it beside the exe there is nothing to fill in,
+    and the Studio opens with "could not prepare the game profile". It is never written to.
+  -->
+  <!--
+    THE BASE MODS, which the ImGui Studio shipped and this project had dropped (found 2026-11-03 by the
+    source snapshot's comparison). BaseMods\CustomWeaponClasses.json is the project the build installs
+    first when a mod puts a weapon on a custom Armoury shelf (UEToolkit.Core BaseMod.Ensure reads it from
+    AppContext.BaseDirectory\BaseMods). Without it such a build stops with "this build does not carry the
+    'CustomWeaponClasses' project", for everyone who does not already have that mod installed.
+  -->
+  <ItemGroup>
+    <None Include="..\BaseMods\**\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="BaseMods" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\ZeroCompanyModStudio\profile-template.json"
+             Link="profile-template.json"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    THE RENDERER, LINKED RATHER THAN COPIED — the same line the Level Editor's project already
+    takes, and for the same reason: never a second copy of the source. Two copies of a renderer
+    can disagree about an asset, which is exactly why SplashBmp moved into Core.
+
+    These files are pure Silk.NET and CUE4Parse; not one of them mentions ImGui, AppState or the
+    toolkit's interface, which is the only reason they can move at all. The Rendering folder is
+    exactly the shared drawing code: the toolkit's own viewport (a GLFW window and an ImGui frame,
+    which hosting the renderer inside Avalonia replaces) lives in UEToolkit.App\Viewport instead.
+
+    It also means the shader the author has spent weeks making match the game — the material
+    families, the trim sheet, the emissive rules — is the SAME shader here. "Default Lit" is not
+    a new approximation; it is that one.
+  -->
+  <ItemGroup>
+    <Compile Include="..\UEToolkit.App\Rendering\*.cs" LinkBase="Shared\Rendering" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
+    <!--
+      Silk.NET drives the GL, exactly as it does in the toolkit and the Level Editor. Avalonia
+      owns the CONTEXT and hands out a GetProcAddress; Silk binds to it. That is the whole reason
+      the existing renderer can be reused rather than rewritten against a second graphics API.
+    -->
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.22.0" />
+  </ItemGroup>
+
+</Project>

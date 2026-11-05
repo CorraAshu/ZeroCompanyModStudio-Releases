@@ -62,7 +62,14 @@ Nothing else. No .NET install, no runtime, no dependencies.
 
 ## This repository
 
-Downloads and nothing else. The source is not public.
+The downloads, the guides, and **the source of the Mod Studio and the Level Editor** in [`source/`](source/).
+
+The source is a **snapshot per release, not live development**: `source/` holds exactly what the latest
+release was built from, so you can read what you are running and build it yourself (the steps are in
+[`source/BUILDING.md`](source/BUILDING.md)). It is replaced when the next release goes out, and is not updated
+in between. Anything changed here would be overwritten by the next snapshot, so the way to build on it is a
+fork. It is licensed GPL-3.0 (see Licence below), and the third-party components it builds on are listed in
+[`source/NOTICE.md`](source/NOTICE.md).
 
 Bug reports and questions are welcome in [Issues](../../issues). If something in a guide does not
 match what you see on screen, trust the screen and say so &mdash; that is a bug in the tool or in
@@ -84,5 +91,5 @@ The build ships third-party components under their own licences, listed in full 
 inside the download.
 
 Star Wars, Zero Company and all related marks belong to their respective owners. This is an
-unofficial tool, not affiliated with or endorsed by Bit Reactor, Respawn Entertainment,
+unofficial tool, not affiliated with or endorsed by Bit Reactor,
 Electronic Arts or Lucasfilm.

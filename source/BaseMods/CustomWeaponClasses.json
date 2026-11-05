@@ -1,0 +1,71 @@
+{
+  "_comment": "The base mod the Mod Studio ships: four custom weapon classes mirroring the game's, so mod weapons stop competing for the game's own per-class shelf. They ship EMPTY -- MEASURED IN GAME 2026-09-03, an empty class is not broken: the soldier still gets the class's DefaultPart (the game's own weapon) and only the MODEL list is bare. The classes fill up as weapon mods are installed.",
+  "name": "CustomWeaponClasses",
+  "displayName": "Custom Weapon Classes",
+  "author": "Zero Company Mod Studio",
+  "version": "0.1",
+  "description": "Adds Custom Longarm, Rifle, Pistol and Repeater classes for mod weapons.",
+  "folder": "Customizations/Mods/CustomWeaponClasses",
+  "tags": [
+    "br.Customization.Part.Character.Specializations.Weapon.Blaster.CustomLongarm",
+    "br.Customization.Part.Character.Specializations.Weapon.Blaster.CustomRifle",
+    "br.Customization.Part.Character.Specializations.Weapon.Blaster.CustomPistol",
+    "br.Customization.Part.Character.Specializations.Weapon.Blaster.CustomRepeater"
+  ],
+  "copies": [
+    {
+      "id": "CPD_WeaponSpec_Custom_Longarm",
+      "template": "/Game/Game/Customizations/Characters/Common/Specialization/Weapon/CPD_WeaponSpec_Blaster_Longarm",
+      "newGuid": true,
+      "display": "CUSTOM LONGARM",
+      "renameNames": {
+        "br.Customization.Part.Character.Specializations.Weapon.Blaster.Longarm": "br.Customization.Part.Character.Specializations.Weapon.Blaster.CustomLongarm"
+      }
+    },
+    {
+      "id": "CPD_WeaponSpec_Custom_Rifle",
+      "template": "/Game/Game/Customizations/Characters/Common/Specialization/Weapon/CPD_WeaponSpec_Blaster_Rifle",
+      "newGuid": true,
+      "display": "CUSTOM RIFLE",
+      "renameNames": {
+        "br.Customization.Part.Character.Specializations.Weapon.Blaster.Rifle": "br.Customization.Part.Character.Specializations.Weapon.Blaster.CustomRifle"
+      }
+    },
+    {
+      "id": "CPD_WeaponSpec_Custom_Pistol",
+      "template": "/Game/Game/Customizations/Characters/Common/Specialization/Weapon/CPD_WeaponSpec_Blaster_Pistol",
+      "newGuid": true,
+      "display": "CUSTOM PISTOL",
+      "renameNames": {
+        "br.Customization.Part.Character.Specializations.Weapon.Blaster.Pistol": "br.Customization.Part.Character.Specializations.Weapon.Blaster.CustomPistol"
+      }
+    },
+    {
+      "id": "CPD_WeaponSpec_Custom_Repeater",
+      "template": "/Game/Game/Customizations/Characters/Common/Specialization/Weapon/CPD_WeaponSpec_Blaster_Repeater",
+      "newGuid": true,
+      "display": "CUSTOM REPEATER",
+      "renameNames": {
+        "br.Customization.Part.Character.Specializations.Weapon.Blaster.Repeater": "br.Customization.Part.Character.Specializations.Weapon.Blaster.CustomRepeater"
+      }
+    }
+  ],
+  "overrides": [
+    {
+      "_comment": "The class list is a ListView in a SizeBox overriding width only, so it grew without limit and drew under the description panel. CONFIRMED IN GAME: giving it a height makes it scroll. 384 = 8 rows at 48 (entry 40 + spacing 8).",
+      "target": "/Game/Game/UI/Strategy/Armory/WBP_Menu_Armory_ChangeWeapon",
+      "addProperties": [
+        {
+          "export": "TypesSizeBox",
+          "name": "HeightOverride",
+          "value": 384
+        },
+        {
+          "export": "TypesSizeBox",
+          "name": "bOverride_HeightOverride",
+          "value": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ZeroCompanyModStudioAvalonia.AboutWindow"
+        Title="About Zero Company Mod Studio"
+        Width="480" SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Ground}">
+
+  <!--
+    ABOUT: what this is, who made it, and what may be done with it. The ImGui Studio's window,
+    in its words (UserInterface.DrawAbout); the licence paragraphs are carried over VERBATIM,
+    because they were rewritten on purpose when the licence changed.
+
+    The licence is here and not only in a file beside the program, because the file is the first
+    thing that goes missing when somebody passes a build on.
+
+    FIXED WIDTH, HEIGHT TO FIT. The ImGui one learned the hard way (photographed, 2026-09-08)
+    that a dialog whose content changes - the update line - must not keep a size from the last
+    time, or it cuts its own Close button in half.
+  -->
+  <StackPanel Margin="24,22,24,20" Spacing="10">
+
+    <TextBlock Name="ProductText" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource Fore}"/>
+    <TextBlock Name="VersionText" FontSize="12" Foreground="{DynamicResource Muted}" Margin="0,-6,0,0"/>
+
+    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+      <TextBlock Text="Made by" FontSize="13" Foreground="{DynamicResource Fore}"/>
+      <TextBlock Name="AuthorText" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Fore}"/>
+    </StackPanel>
+
+    <!-- WHAT THE LICENCE ACTUALLY PERMITS, and this line had to change with it. It used to read
+         "not to be redistributed, sold, modified" - true of the proprietary licence up to 1.5.1
+         and the exact opposite of GPL-3.0, which permits all three. A program that misstates its
+         own licence is worse than one that says nothing. -->
+    <TextBlock FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" Margin="0,4,0,0"
+               Text="Free to use, share and change, under the GNU General Public License v3. The mods you make with it are yours. If you pass on a changed version it has to stay under the same licence, with the source available and the credit intact."/>
+    <TextBlock FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"
+               Text="LICENSE beside this program is the full text. Third-party components ship under their own licences; NOTICE.md lists every one of them."/>
+
+    <StackPanel Name="HomeBlock" Spacing="8" Margin="0,4,0,0">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Name="DownloadsButton" Content="Downloads and updates" Click="OnDownloads"
+                Padding="14,6" FontSize="12"/>
+        <Button Name="GuidesButton" Content="Guides on the web" Click="OnGuides"
+                Padding="14,6" FontSize="12"
+                ToolTip.Tip="The same handbook the Handbook menu opens, in your browser."/>
+      </StackPanel>
+      <!-- BELOW the buttons, wrapped: beside them the address ran off the edge of the window and
+           the last third of it was simply not there (photographed in the ImGui Studio). -->
+      <TextBlock Name="HomeText" FontSize="11.5" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"/>
+    </StackPanel>
+
+    <!-- THE UPDATE CHECK, said and switchable in the same place. Here rather than in a settings
+         window because this is where somebody goes to ask what version they are on, and it is the
+         one thing in the tool that talks to the internet without being asked - so it says so, in
+         the window whose job is saying what this program is. Saved on the spot: a switch that
+         needs a Save button somewhere else is a switch people think they have set. -->
+    <StackPanel Name="CheckBlock" Spacing="6" Margin="0,4,0,0">
+      <CheckBox Name="CheckBox" Content="Look for a newer version when this starts"
+                FontSize="12.5" Click="OnCheckForUpdates"/>
+      <TextBlock Name="CheckText" FontSize="11.5" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"/>
+    </StackPanel>
+
+    <Border Height="1" Background="{DynamicResource Line}" Margin="0,6,0,2"/>
+
+    <TextBlock FontSize="11.5" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"
+               Text="An unofficial tool. Not affiliated with or endorsed by Bit Reactor, Electronic Arts or Lucasfilm. Star Wars and Zero Company belong to their owners."/>
+
+    <Button Content="Close" Click="OnClose" Padding="22,6" FontSize="12" MinWidth="96"
+            HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,4,0,0"
+            IsDefault="True" IsCancel="True"/>
+  </StackPanel>
+</Window>

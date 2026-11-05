@@ -1,0 +1,51 @@
+--- a/CUE4Parse-Conversion/Animations/AnimConverter.cs
++++ b/CUE4Parse-Conversion/Animations/AnimConverter.cs
+@@ -130,6 +130,30 @@
+             var animSeq = new CAnimSequence(animSequence, skeleton);
+ 
+             var numBones = skeleton.BoneCount;
++
++            // The native ACL writer fills a DEFAULT rotation/translation/scale sub-track with
++            // RefPoses[TrackToBoneMapping[track].BoneTreeIndex]. Nothing bounds that index, and it
++            // is not always in range: every B2_BattleDroid clip in Zero Company ships a 56-entry
++            // track map whose last two entries name bones 56 and 57 against a 56-bone skeleton,
++            // because the skeleton was compressed with two virtual bones appended that the cooked
++            // ReferenceSkeleton does not carry. Those lookups read PAST THE END of a pinned managed
++            // array and whatever happens to lie there is written into the pose. Pad with identity
++            // so an out-of-range track resolves to something defined rather than to heap noise.
++            //
++            // This is NOT the cause of Zero Company's one bad foot -- that value is in the game's
++            // own compressed stream, proved by poisoning both candidate ref-pose entries and
++            // seeing the output not move. It is a real out-of-bounds read regardless.
++            var basePose = animSeq.RetargetBasePose ?? skeleton.ReferenceSkeleton.FinalRefBonePose;
++            var mapMax = -1;
++            foreach (var e in animSequence.GetTrackMap())
++                if (e.BoneTreeIndex > mapMax) mapMax = e.BoneTreeIndex;
++            if (mapMax >= basePose.Length)
++            {
++                var padded = new FTransform[mapMax + 1];
++                Array.Copy(basePose, padded, basePose.Length);
++                for (var i = basePose.Length; i < padded.Length; i++) padded[i] = FTransform.Identity;
++                basePose = padded;
++            }
+             if (animSequence.RawAnimationData is { Length: > 0 })
+             {
+                 Trace.Assert(animSequence.RawAnimationData.Length == animSeq.Tracks.Capacity);
+@@ -193,7 +217,7 @@
+                         atomKeys = new FTransform[animSeq.Tracks.Capacity * numSamples];
+                         unsafe
+                         {
+-                            fixed (FTransform* refPosePtr = animSeq.RetargetBasePose ?? skeleton.ReferenceSkeleton.FinalRefBonePose)
++                            fixed (FTransform* refPosePtr = basePose)
+                             fixed (FTrackToSkeletonMap* trackToSkeletonMapPtr = animSequence.GetTrackMap())
+                             fixed (FTransform* atomKeysPtr = atomKeys)
+                             {
+@@ -214,7 +238,7 @@
+                     atomKeys = new FTransform[animSeq.Tracks.Capacity * numSamples];
+                     unsafe
+                     {
+-                        fixed (FTransform* refPosePtr = animSeq.RetargetBasePose ?? skeleton.ReferenceSkeleton.FinalRefBonePose)
++                        fixed (FTransform* refPosePtr = basePose)
+                         fixed (FTrackToSkeletonMap* trackToSkeletonMapPtr = animSequence.GetTrackMap())
+                         fixed (FTransform* atomKeysPtr = atomKeys)
+                         {

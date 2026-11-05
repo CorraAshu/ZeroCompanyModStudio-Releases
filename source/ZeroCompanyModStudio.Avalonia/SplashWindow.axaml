@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ZeroCompanyModStudioAvalonia"
+        x:Class="ZeroCompanyModStudioAvalonia.SplashWindow"
+        x:DataType="local:SplashWindow"
+        Title="Zero Company Mod Studio"
+        SystemDecorations="None" CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterScreen"
+        Background="#0A0C10">
+
+  <Panel>
+    <!-- The game's own artwork, read from the player's install. Null when it cannot be read,
+         and the window still opens: a missing splash is cosmetic and never a reason not to
+         start. -->
+    <Image Source="{Binding Picture}" Stretch="None"/>
+
+    <!-- The status line goes in the black band the artwork ends with, left of the engine and
+         publisher logos. Both of those positions are MEASURED off the image rather than written
+         down, so a different splash does not put this text across the picture. -->
+    <TextBlock Text="{Binding Status}"
+               Foreground="#C8D0DA" FontSize="12.5"
+               HorizontalAlignment="Left" VerticalAlignment="Top"
+               Margin="{Binding StatusMargin}"/>
+  </Panel>
+</Window>

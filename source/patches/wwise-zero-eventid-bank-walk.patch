@@ -1,0 +1,32 @@
+diff --git a/CUE4Parse/UE4/Wwise/WwiseProvider.cs b/CUE4Parse/UE4/Wwise/WwiseProvider.cs
+index f25f8265..a08502ae 100644
+--- a/CUE4Parse/UE4/Wwise/WwiseProvider.cs
++++ b/CUE4Parse/UE4/Wwise/WwiseProvider.cs
+@@ -286,8 +286,25 @@ private void CacheMediaCookedData(FWwiseMediaCookedData media)
+         }
+     }
+ 
+-    private void ProcessSoundBankCookedData(string ownerDirectory, FWwiseEventCookedData? eventData, List<WwiseExtractedSound> results, HashSet<uint> visitedMedia) =>
+-        LoopThroughEvent(eventData!.Value.EventId, results, ownerDirectory, visitedMedia, eventData.Value.DebugName.Text);
++    private void ProcessSoundBankCookedData(string ownerDirectory, FWwiseEventCookedData? eventData, List<WwiseExtractedSound> results, HashSet<uint> visitedMedia)
++    {
++        var eventId = eventData!.Value.EventId;
++        var debugName = eventData.Value.DebugName.Text;
++
++        // A cooked EventId of ZERO is not a missing event, it is a missing NUMBER. Star Wars Zero
++        // Company ships every weapon event this way: EventCookedData present, Media empty,
++        // SoundBanks populated, EventId 0. The walk then looks up hierarchy id 0, finds nothing,
++        // and returns silently -- 224 of 237 weapon events, every blaster in the game, while VO
++        // extracted fine because those events carry direct Media and never take this path.
++        //
++        // The id is recoverable: Wwise ids are the FNV-1 hash of the name, which is exactly what
++        // the no-cooked-data branch above already falls back to. Do the same here rather than
++        // trusting a zero.
++        if (eventId == 0 && !string.IsNullOrEmpty(debugName))
++            eventId = WwiseFnv.GetHash(debugName.Trim('"'));
++
++        LoopThroughEvent(eventId, results, ownerDirectory, visitedMedia, debugName);
++    }
+ 
+     private WwiseReader? LoadSoundBankById(uint soundBankId, bool returnBank = false)
+     {

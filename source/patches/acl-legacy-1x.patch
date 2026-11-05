@@ -1,0 +1,394 @@
+diff --git a/CUE4Parse-Conversion/Animations/AnimConverter.cs b/CUE4Parse-Conversion/Animations/AnimConverter.cs
+index e34491b9..d993264c 100644
+--- a/CUE4Parse-Conversion/Animations/AnimConverter.cs
++++ b/CUE4Parse-Conversion/Animations/AnimConverter.cs
+@@ -180,15 +180,38 @@ static void CopyArray<T>(out T[] dest, T[] src)
+                 }
+                 case FACLCompressedAnimData aclData:
+                 {
++                    int numSamples;
++                    FTransform[] atomKeys;
++
++                    if (aclData.IsLegacy)
++                    {
++                        // Pre-2.0 ACL (CompressedClip, tag 0xAC10AC10). Same call shape, different
++                        // decoder: this format has no bind-pose stripping, so the reference pose
++                        // and track map are passed but unused on the native side.
++                        using var clip = aclData.GetLegacyClip();
++                        numSamples = (int) clip.NumSamples;
++                        atomKeys = new FTransform[animSeq.Tracks.Capacity * numSamples];
++                        unsafe
++                        {
++                            fixed (FTransform* refPosePtr = animSeq.RetargetBasePose ?? skeleton.ReferenceSkeleton.FinalRefBonePose)
++                            fixed (FTrackToSkeletonMap* trackToSkeletonMapPtr = animSequence.GetTrackMap())
++                            fixed (FTransform* atomKeysPtr = atomKeys)
++                            {
++                                nReadLegacyACLData(clip.Handle, refPosePtr, trackToSkeletonMapPtr, atomKeysPtr);
++                            }
++                        }
++                    }
++                    else
++                    {
+                     var tracks = aclData.GetCompressedTracks();
+                     var tracksHeader = tracks.GetTracksHeader();
+-                    var numSamples = (int) tracksHeader.NumSamples;
++                    numSamples = (int) tracksHeader.NumSamples;
+ 
+                     // smh Valo has this set to 1, but it should be 0, right?
+                     if (animSequence.IsValidAdditive()) tracks.SetDefaultScale(0);
+ 
+                     // Let the native code do its job
+-                    var atomKeys = new FTransform[animSeq.Tracks.Capacity * numSamples];
++                    atomKeys = new FTransform[animSeq.Tracks.Capacity * numSamples];
+                     unsafe
+                     {
+                         fixed (FTransform* refPosePtr = animSeq.RetargetBasePose ?? skeleton.ReferenceSkeleton.FinalRefBonePose)
+@@ -198,6 +221,7 @@ static void CopyArray<T>(out T[] dest, T[] src)
+                             nReadACLData(tracks.Handle, refPosePtr, trackToSkeletonMapPtr, atomKeysPtr);
+                         }
+                     }
++                    }
+ 
+                     // Prepare buffers of all samples of each transform property for the native code to populate
+                     var posKeys = new FVector[atomKeys.Length];
+@@ -286,10 +310,16 @@ public static CAnimSequence ConvertAdditive(this CAnimSequence animSeq, UAnimSeq
+             for (var frameIndex = 0; frameIndex < additivePoses.Length; frameIndex++)
+             {
+                 var addPose = additivePoses[frameIndex];
++                // ABPT_AnimScaled is the only type that yields a pose PER FRAME. Every other
++                // branch above returns `new FCompactPose[1]` with refFrameIndex already baked
++                // in by the loader, so indexing it by refFrameIndex again is wrong -- and out
++                // of range the moment that index is not zero. One game's first-person
++                // ammunition animation (ABPT_RefPose, refFrameIndex 1) threw
++                // IndexOutOfRange here on every export.
+                 var refPose = (FCompactPose)referencePoses[refPoseType switch
+                 {
+                     EAdditiveBasePoseType.ABPT_AnimScaled => frameIndex % maxRefPosFrame,
+-                    _ => refFrameIndex
++                    _ => 0
+                 }].Clone();
+ 
+                 switch (animSeq.OriginalSequence.AdditiveAnimType)
+@@ -654,5 +684,9 @@ void ReadVectorKeys(long offset, int numKeys, AnimationCompressionFormat compres
+ 
+         [DllImport(ACLNative.LIB_NAME)]
+         private static extern unsafe void nReadACLData(IntPtr compressedTracks, FTransform* inRefPoses, FTrackToSkeletonMap* inTrackToSkeletonMap, FTransform* outAtom);
++
++        /// <summary>Pre-2.0 ACL. Deliberately the same signature as <see cref="nReadACLData"/>.</summary>
++        [DllImport(ACLNative.LIB_NAME)]
++        private static extern unsafe void nReadLegacyACLData(IntPtr compressedClip, FTransform* inRefPoses, FTrackToSkeletonMap* inTrackToSkeletonMap, FTransform* outAtom);
+     }
+ }
+diff --git a/CUE4Parse-Natives/ACL/LegacyACL.cpp b/CUE4Parse-Natives/ACL/LegacyACL.cpp
+new file mode 100644
+index 00000000..198d1bc5
+--- /dev/null
++++ b/CUE4Parse-Natives/ACL/LegacyACL.cpp
+@@ -0,0 +1,127 @@
++// ACL 1.x ("CompressedClip", buffer tag 0xAC10AC10) decompression.
++//
++// The bundled ACL is 2.x, which reads "compressed_tracks" (0xAC11AC11) and rejects the older
++// format outright -- its own buffer_tag.h calls compressed_clip "deprecated, no longer used".
++// But UE4 titles that shipped against the pre-2.0 ACL plugin still carry it: some
++// games store every bone track this way, so without this one game's 17,789 AnimSequences
++// all fail with "Invalid tag" while their CURVE data, which is 2.x, decodes fine.
++//
++// The two libraries coexist because ACL 2.x puts everything inside an inline version namespace
++// (acl::v2_1_0::), so its symbols never collide with 1.3's plain acl::. What they cannot share
++// is INCLUDE PATHS -- both answer to <acl/core/...> -- so this file is compiled as its own
++// static library with only the 1.3 tree visible, and never includes the 2.x glue. That is also
++// why the transform structs are redeclared below instead of coming from common/Structs.h:
++// FACLTransform there is written in terms of rtm 2.2, and 1.3 wants its own math types.
++//
++// The C# side of this is CUE4Parse.ACL.LegacyCompressedClip, which dispatches on the tag.
++
++#include <acl/core/ansi_allocator.h>
++#include <acl/core/compressed_clip.h>
++#include <acl/decompression/output_writer.h>
++#include <acl/algorithm/uniformly_sampled/decoder.h>
++
++#include <cstdint>
++
++#include "../common/Framework.h"
++
++// Layout-compatible with UEToolkit/CUE4Parse's managed structs and with common/Structs.h.
++// Kept separate rather than included: see the header comment.
++namespace
++{
++    struct LegacyQuat { float X, Y, Z, W; };
++    struct LegacyVector { float X, Y, Z; };
++
++    struct LegacyTransform
++    {
++        LegacyQuat Rotation;
++        LegacyVector Translation;
++        LegacyVector Scale3D;
++    };
++
++    struct LegacyTrackToSkeletonMap { int32_t BoneTreeIndex; };
++
++    // ACL 1.x has no bind-pose stripping -- default_sub_track_mode arrived with 2.0 -- so unlike
++    // the 2.x writer this one never consults the reference pose. A track the clip calls "default"
++    // decompresses to identity, which is what the pre-2.0 UE plugin wrote and expects back.
++    struct FCUE4ParseLegacyOutputWriter final : public acl::OutputWriter
++    {
++        LegacyTransform* Atoms;
++        uint32_t NumSamples;
++        uint32_t SampleIndex;
++
++        FCUE4ParseLegacyOutputWriter(LegacyTransform* inAtoms, uint32_t inNumSamples)
++            : Atoms(inAtoms), NumSamples(inNumSamples), SampleIndex(0)
++        {}
++
++        // Atom layout is track-major, sample-minor -- the same order nReadACLData writes, so the
++        // managed reader is identical for both formats.
++        void write_bone_rotation(uint16_t boneIndex, const acl::Quat_32& rotation)
++        {
++            acl::quat_unaligned_write(rotation, &Atoms[boneIndex * NumSamples + SampleIndex].Rotation.X);
++        }
++
++        void write_bone_translation(uint16_t boneIndex, const acl::Vector4_32& translation)
++        {
++            acl::vector_unaligned_write3(translation, &Atoms[boneIndex * NumSamples + SampleIndex].Translation.X);
++        }
++
++        void write_bone_scale(uint16_t boneIndex, const acl::Vector4_32& scale)
++        {
++            acl::vector_unaligned_write3(scale, &Atoms[boneIndex * NumSamples + SampleIndex].Scale3D.X);
++        }
++    };
++
++    using LegacyDecompContext = acl::uniformly_sampled::DecompressionContext<
++        acl::uniformly_sampled::DebugDecompressionSettings>;
++}
++
++// Same contract as nCompressedTracks_IsValid: empty string means valid. The managed side calls
++// this BEFORE anything else, because handing a 2.x buffer to a 1.x decoder is undefined rather
++// than merely wrong.
++DLLEXPORT const char* nLegacyACL_IsValid(const acl::CompressedClip* clip, bool checkHash)
++{
++    return clip->is_valid(checkHash).c_str();
++}
++
++// The managed side has to size the output array before decompressing, and in 1.x the sample
++// count lives in the ClipHeader rather than being reachable off the clip itself.
++DLLEXPORT uint32_t nLegacyACL_GetNumSamples(const acl::CompressedClip* clip)
++{
++    return acl::get_clip_header(*clip).num_samples;
++}
++
++DLLEXPORT uint32_t nLegacyACL_GetNumBones(const acl::CompressedClip* clip)
++{
++    return acl::get_clip_header(*clip).num_bones;
++}
++
++DLLEXPORT float nLegacyACL_GetSampleRate(const acl::CompressedClip* clip)
++{
++    return acl::get_clip_header(*clip).sample_rate;
++}
++
++// inRefPoses and inTrackToSkeletonMap are accepted but unused, so that the managed call site is
++// the same shape as the 2.x one. They exist in 2.x only to supply stripped bind-pose defaults,
++// which this format does not have; taking them here keeps the dispatch a one-line difference
++// instead of two parallel code paths.
++DLLEXPORT void nReadLegacyACLData(const acl::CompressedClip* clip, LegacyTransform* /*inRefPoses*/,
++    LegacyTrackToSkeletonMap* /*inTrackToSkeletonMap*/, LegacyTransform* outAtom)
++{
++    const acl::ClipHeader& header = acl::get_clip_header(*clip);
++    const uint32_t numSamples = header.num_samples;
++    const float sampleRate = header.sample_rate;
++    const float duration = numSamples > 1 ? float(numSamples - 1) / sampleRate : 0.0F;
++
++    LegacyDecompContext context;
++    context.initialize(*clip);
++
++    FCUE4ParseLegacyOutputWriter writer(outAtom, numSamples);
++    for (uint32_t sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex)
++    {
++        float sampleTime = float(sampleIndex) / sampleRate;
++        if (sampleTime > duration) sampleTime = duration;
++        context.seek(sampleTime, acl::SampleRoundingPolicy::Nearest);
++        writer.SampleIndex = sampleIndex;
++        context.decompress_pose(writer);
++    }
++}
+diff --git a/CUE4Parse-Natives/CMakeLists.txt b/CUE4Parse-Natives/CMakeLists.txt
+index abfca03c..e77570f5 100644
+--- a/CUE4Parse-Natives/CMakeLists.txt
++++ b/CUE4Parse-Natives/CMakeLists.txt
+@@ -20,6 +20,32 @@ if (WITH_ACL)
+         set(SOURCES ${SOURCES} ${PROJECT_SOURCE_DIR}/ACL/ACL.cpp)
+ endif()
+ 
++# ACL 1.x, for UE4 titles that shipped against the pre-2.0 plugin and store bone tracks as
++# CompressedClip (tag 0xAC10AC10) -- several shipped games are. Built as a SEPARATE target
++# on purpose: both libraries answer to <acl/core/...>, so they cannot share an include path, and
++# only the version-namespaced symbols (acl::v2_1_0:: vs plain acl::) let them share a binary.
++if (EXISTS "${PROJECT_SOURCE_DIR}/ACL/external/acl1/includes")
++        set(WITH_ACL_LEGACY 1)
++        add_library(acl_legacy STATIC "${PROJECT_SOURCE_DIR}/ACL/LegacyACL.cpp")
++        # SET, not target_include_directories: a target inherits the directory's
++        # include_directories() at creation and those come FIRST, so the 2.x tree added above
++        # would answer every <acl/core/...> include and 1.3's headers would never be seen. The
++        # failure mode is not a missing file -- it is 2.x headers compiled as if they were 1.3.
++        set_property(TARGET acl_legacy PROPERTY INCLUDE_DIRECTORIES
++                "${PROJECT_SOURCE_DIR}/ACL/external/acl1/includes"
++                "${PROJECT_SOURCE_DIR}/ACL/external/acl1/external/rtm/includes")
++        target_compile_definitions(acl_legacy PRIVATE WITH_ACL_LEGACY)
++        # Per-target, not project-wide: 1.3's decompress_data.h uses inline variables and
++        # template syntax MSVC only accepts at C++17, while the rest of this project is C++11
++        # and should stay where it has been building.
++        set_property(TARGET acl_legacy PROPERTY CXX_STANDARD 17)
++        set_property(TARGET acl_legacy PROPERTY CXX_STANDARD_REQUIRED ON)
++        if (WIN32)
++                target_compile_definitions(acl_legacy PRIVATE WIN_EXPORT)
++        endif()
++        set_property(TARGET acl_legacy PROPERTY POSITION_INDEPENDENT_CODE ON)
++endif()
++
+ # Oodle
+ if (WITH_Oodle)
+         add_compile_definitions(OODLE_BUILDING_DLL)
+@@ -33,6 +59,19 @@ include_directories("${PROJECT_SOURCE_DIR}/common")
+ add_library("${PROJECT_NAME}" SHARED ${SOURCES})
+ set_target_properties("${PROJECT_NAME}" PROPERTIES PREFIX "")
+ 
++# The legacy entry points are only referenced from managed code, so the linker would drop the
++# whole object without this -- the DLL would build clean and export nothing.
++if (WITH_ACL_LEGACY)
++    target_link_libraries("${PROJECT_NAME}" PRIVATE acl_legacy)
++    if(WIN32)
++        target_link_options("${PROJECT_NAME}" PRIVATE "/WHOLEARCHIVE:acl_legacy")
++    elseif(APPLE)
++        target_link_options("${PROJECT_NAME}" PRIVATE "-Wl,-force_load,$<TARGET_FILE:acl_legacy>")
++    else()
++        target_link_options("${PROJECT_NAME}" PRIVATE "-Wl,--whole-archive" "$<TARGET_FILE:acl_legacy>" "-Wl,--no-whole-archive")
++    endif()
++endif()
++
+ # Oodle
+ if (WITH_Oodle)
+     target_link_libraries("${PROJECT_NAME}" PRIVATE oodle2)
+diff --git a/CUE4Parse/ACL/LegacyCompressedClip.cs b/CUE4Parse/ACL/LegacyCompressedClip.cs
+new file mode 100644
+index 00000000..3cc65ddf
+--- /dev/null
++++ b/CUE4Parse/ACL/LegacyCompressedClip.cs
+@@ -0,0 +1,97 @@
++using System;
++using System.Runtime.InteropServices;
++using static CUE4Parse.ACL.ACLNative;
++
++namespace CUE4Parse.ACL
++{
++    /// <summary>
++    /// An ACL 1.x <c>CompressedClip</c> — the pre-2.0 buffer, tag <c>0xAC10AC10</c>.
++    ///
++    /// ACL 2.0 renamed the container to <c>compressed_tracks</c> and changed the tag, and the
++    /// bundled 2.x library rejects the old one outright ("Invalid tag") rather than falling back.
++    /// UE4 titles that shipped against the earlier ACL plugin still contain it: some
++    /// games store every bone track as a CompressedClip while their curve data is already 2.x,
++    /// so one animation can need both decoders.
++    ///
++    /// Mirrors <see cref="CompressedTracks"/>: the buffer is copied into 16-byte-aligned native
++    /// memory because ACL casts it straight to a type with that alignment requirement, and
++    /// validates before anything else — feeding a 2.x buffer to a 1.x decoder is undefined
++    /// behaviour, not a wrong answer.
++    /// </summary>
++    public class LegacyCompressedClip : IDisposable
++    {
++        /// <summary>Tag at offset 8 of an ACL 1.x buffer, after the 8-byte raw buffer header.</summary>
++        public const uint Tag = 0xAC10AC10;
++
++        /// <summary>Tag of an ACL 2.x <c>compressed_tracks</c> buffer, for telling them apart.</summary>
++        public const uint TracksTag = 0xAC11AC11;
++
++        /// <summary>
++        /// Which ACL container a byte stream holds, without allocating or validating anything.
++        /// Returns 0 when the buffer is too short to have a tag at all.
++        /// </summary>
++        public static uint PeekTag(byte[]? buffer) =>
++            buffer is { Length: >= 12 } ? BitConverter.ToUInt32(buffer, 8) : 0u;
++
++        public static bool IsLegacy(byte[]? buffer) => PeekTag(buffer) == Tag;
++
++        public IntPtr Handle { get; private set; }
++        private readonly int _bufferLength;
++
++        public LegacyCompressedClip(byte[] buffer)
++        {
++            _bufferLength = buffer.Length;
++            Handle = nAllocate(_bufferLength);
++            Marshal.Copy(buffer, 0, Handle, buffer.Length);
++            var error = IsValid(false);
++            if (error != null)
++            {
++                nDeallocate(Handle, _bufferLength);
++                Handle = IntPtr.Zero;
++                throw new ACLException(error);
++            }
++        }
++
++        ~LegacyCompressedClip() => Free();
++
++        public void Dispose()
++        {
++            Free();
++            GC.SuppressFinalize(this);
++        }
++
++        private void Free()
++        {
++            if (_bufferLength >= 0 && Handle != IntPtr.Zero)
++            {
++                nDeallocate(Handle, _bufferLength);
++                Handle = IntPtr.Zero;
++            }
++        }
++
++        public string? IsValid(bool checkHash)
++        {
++            var error = Marshal.PtrToStringAnsi(nLegacyACL_IsValid(Handle, checkHash))!;
++            return error.Length > 0 ? error : null;
++        }
++
++        /// <summary>Samples per track. Lives in the ClipHeader, not on the clip itself.</summary>
++        public uint NumSamples => nLegacyACL_GetNumSamples(Handle);
++
++        public uint NumBones => nLegacyACL_GetNumBones(Handle);
++
++        public float SampleRate => nLegacyACL_GetSampleRate(Handle);
++
++        [DllImport(LIB_NAME)]
++        private static extern IntPtr nLegacyACL_IsValid(IntPtr handle, bool checkHash);
++
++        [DllImport(LIB_NAME)]
++        private static extern uint nLegacyACL_GetNumSamples(IntPtr handle);
++
++        [DllImport(LIB_NAME)]
++        private static extern uint nLegacyACL_GetNumBones(IntPtr handle);
++
++        [DllImport(LIB_NAME)]
++        private static extern float nLegacyACL_GetSampleRate(IntPtr handle);
++    }
++}
+diff --git a/CUE4Parse/UE4/Assets/Exports/Animation/ACL/AnimBoneCompressionCodec_ACLBase.cs b/CUE4Parse/UE4/Assets/Exports/Animation/ACL/AnimBoneCompressionCodec_ACLBase.cs
+index 79ed195a..1460cd68 100644
+--- a/CUE4Parse/UE4/Assets/Exports/Animation/ACL/AnimBoneCompressionCodec_ACLBase.cs
++++ b/CUE4Parse/UE4/Assets/Exports/Animation/ACL/AnimBoneCompressionCodec_ACLBase.cs
+@@ -13,6 +13,15 @@ public class FACLCompressedAnimData : ICompressedAnimData
+ 
+         public CompressedTracks GetCompressedTracks() => new(CompressedByteStream);
+ 
++        /// <summary>
++        /// True when this is a pre-2.0 ACL <c>CompressedClip</c> rather than a
++        /// <c>compressed_tracks</c>. Both arrive through the same codec class and the same field;
++        /// only the buffer tag tells them apart, and the 2.x decoder rejects the older one.
++        /// </summary>
++        public bool IsLegacy => LegacyCompressedClip.IsLegacy(CompressedByteStream);
++
++        public LegacyCompressedClip GetLegacyClip() => new(CompressedByteStream);
++
+         public void Bind(byte[] bulkData) => CompressedByteStream = bulkData;
+     }
+ 

@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>CS8618</NoWarn>
+    <!--
+      WHAT WINDOWS SHOWS ON UEToolkit.Core.dll's Details tab. It ships in the Studio's folder, and by
+      default read Company "UEToolkit.Core", Product "UEToolkit.Core" and a product version carrying
+      the build machine's commit hash ("1.0.0+8d28296e..."). The toolkit builds the same assembly and
+      shows the same, which is harmless.
+    -->
+    <Company>Clonetrooper163</Company>
+    <Authors>Clonetrooper163</Authors>
+    <Product>Zero Company Mod Studio</Product>
+    <Copyright>Copyright (c) 2026 Clonetrooper163. Licensed under the GNU GPL v3.0.</Copyright>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <!--
+    NAudio for playback. CUE4Parse already pulls NAudio.Core transitively, but Core carries no
+    OUTPUT device - it is buffers and formats only - so auditioning a sound needs the full
+    package for WaveOutEvent. Windows-only, which this toolkit already is.
+  -->
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+  <!--
+    ONE SkiaSharp, and it is Avalonia's. CUE4Parse-Conversion pins SkiaSharp to exactly 2.88.9
+    (its Directory.Packages.props file), while Avalonia 12 brings 3.119.x - and a published folder
+    can hold only a single SkiaSharp.dll / libSkiaSharp.dll. The Studio's folder therefore carries
+    3.119.4, and anything running beside it (the Blender add-on's headless verbs run inside the
+    Studio's own exe since 2.0.0; before that a second executable did, against a deps.json that
+    still named 2.88.9) must be declared against the file that is really there.
+
+    Naming 3.119.4 here makes it the nearest declaration for everything that references Core, so
+    every executable's deps.json says the same version as the file beside it, and the compiler
+    checks the calls THIS code makes (CrashLog, PixelDiff, and the toolkit's Texpng and
+    TextureCache) against the library that will actually run them. CUE4Parse-Conversion's own
+    texture decode is still compiled against 2.88.9 by its own project, so it is proven at run
+    time instead (the add-on's import verb and the regress guard both decode real textures). If Avalonia
+    moves to a newer SkiaSharp this line is a restore error (NU1605), not a silent mismatch:
+    change it to the version Avalonia.Skia asks for.
+  -->
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FModel-dev\CUE4Parse\CUE4Parse\CUE4Parse.csproj" />
+    <ProjectReference Include="..\..\FModel-dev\CUE4Parse\CUE4Parse-Conversion\CUE4Parse-Conversion.csproj" />
+  </ItemGroup>
+
+</Project>

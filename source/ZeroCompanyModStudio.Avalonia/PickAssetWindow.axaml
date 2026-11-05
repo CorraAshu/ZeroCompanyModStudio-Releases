@@ -1,0 +1,121 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ZeroCompanyModStudioAvalonia"
+        x:Class="ZeroCompanyModStudioAvalonia.PickAssetWindow"
+        Title="Choose from the game"
+        Width="900" Height="700" MinWidth="560" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Ground}">
+
+  <!--
+    ONE OF THE GAME'S OWN ASSETS, chosen from a list — OR SEEN, when it is a picture.
+
+    The author put the old studio's icon picker beside this one and the verdict was immediate:
+    "The old mod studio's icon picker was so much better". It was, and for four reasons, all of
+    them now here. It SHOWED THE PICTURES. It narrowed to what could plausibly be used — "Legs
+    only", 128 of 1,167 — rather than offering nine and a half thousand textures including the
+    UI atlas for the galaxy map. It kept YOUR OWN images in their own section above the game's.
+    And it put Import in the same window, because "choose a picture" is one decision whether the
+    picture already exists or is on your disk.
+
+    A MESH HAS NO PICTURE, so this is still a name list for one. The grid appears only where
+    there is something to look at.
+  -->
+
+  <DockPanel Margin="12">
+
+    <StackPanel DockPanel.Dock="Top" Spacing="6">
+      <TextBlock Name="Heading" FontSize="13" Foreground="{DynamicResource Fore}"/>
+      <TextBlock Name="Note" FontSize="11" TextWrapping="Wrap"
+                 Foreground="{DynamicResource Muted}"/>
+
+      <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+        <TextBox Name="Filter" FontSize="12" Padding="6,3" CornerRadius="0"
+                 Watermark="type part of a name"/>
+        <CheckBox Name="Scope" Grid.Column="1" Margin="10,0,0,0" FontSize="11.5"
+                  IsChecked="True" VerticalAlignment="Center"/>
+      </Grid>
+      <TextBlock Name="Count" FontSize="10.5" Foreground="{DynamicResource Faint}"/>
+    </StackPanel>
+
+    <Border DockPanel.Dock="Bottom" Margin="0,10,0,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Name="Picked" FontSize="11" VerticalAlignment="Center"
+                   TextTrimming="CharacterEllipsis"
+                   FontFamily="Consolas,monospace"
+                   Foreground="{DynamicResource Accent}"/>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <Button Name="Cancel" Content="Cancel" FontSize="12" Padding="12,3" CornerRadius="0"/>
+          <Button Name="Accept" Content="Use this one" FontSize="12" Padding="12,3"
+                  CornerRadius="0" IsEnabled="False"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <ScrollViewer>
+      <StackPanel Spacing="6">
+
+        <!-- YOUR OWN FIRST, with Import beside it. The old studio's shape, and the right one:
+             the thing you made is the thing you are most likely to be reaching for. -->
+        <StackPanel Name="OwnBlock" Spacing="5">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="Your own" FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Accent}"/>
+            <Button Name="Import" FontSize="11" Padding="7,1" CornerRadius="0" MinWidth="0"
+                    Content="Import a PNG or TGA…"/>
+          </StackPanel>
+          <ItemsControl Name="Own">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+          </ItemsControl>
+          <TextBlock Name="OwnEmpty" FontSize="11" Foreground="{DynamicResource Faint}"
+                     Text="Nothing imported into this mod yet."/>
+        </StackPanel>
+
+        <TextBlock Name="GameHead" Text="The game's own" FontSize="12" Margin="0,6,0,0"
+                   Foreground="{DynamicResource Accent}"/>
+
+        <!-- The grid, for pictures. -->
+        <ListBox Name="Grid" Background="Transparent" BorderThickness="0"
+                 IsVisible="False">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="local:PickAssetWindow+Candidate">
+              <Border Width="96" Height="112" Margin="2" Padding="3"
+                      Background="{DynamicResource Panel}"
+                      BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                      ToolTip.Tip="{Binding Where}">
+                <DockPanel>
+                  <TextBlock DockPanel.Dock="Bottom" Text="{Binding Name}" FontSize="9"
+                             TextTrimming="CharacterEllipsis" MaxLines="2"
+                             TextWrapping="Wrap" Height="24"
+                             Foreground="{DynamicResource Muted}"/>
+                  <Image Source="{Binding Shot}" Stretch="Uniform" Margin="2"/>
+                </DockPanel>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- The list, for things with no picture. -->
+        <ListBox Name="List" Background="Transparent" BorderThickness="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="local:PickAssetWindow+Candidate">
+              <StackPanel Spacing="1" Margin="0,1">
+                <TextBlock Text="{Binding Name}" FontSize="12"
+                           Foreground="{DynamicResource Fore}"/>
+                <TextBlock Text="{Binding Where}" FontSize="10"
+                           TextTrimming="CharacterEllipsis"
+                           FontFamily="Consolas,monospace"
+                           Foreground="{DynamicResource Faint}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

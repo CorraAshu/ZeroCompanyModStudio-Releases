@@ -1,0 +1,66 @@
+diff --git a/CUE4Parse-Conversion/Meshes/PSK/ActorXMesh.cs b/CUE4Parse-Conversion/Meshes/PSK/ActorXMesh.cs
+index 7658b08a..f589cf2f 100644
+--- a/CUE4Parse-Conversion/Meshes/PSK/ActorXMesh.cs
++++ b/CUE4Parse-Conversion/Meshes/PSK/ActorXMesh.cs
+@@ -1,4 +1,4 @@
+-using System.Collections;
++﻿using System.Collections;
+ using CUE4Parse_Conversion.ActorX;
+ using CUE4Parse_Conversion.Materials;
+ using CUE4Parse.UE4.Assets.Exports.Animation;
+@@ -28,8 +28,9 @@ public ActorXMesh(ExporterOptions options)
+ 
+     public ActorXMesh(List<CSkelMeshBone> bones, FPackageIndex[] sockets, ExporterOptions options) : this(options)
+     {
+-        ExportSkeletalSockets(sockets, bones);
+-        ExportSkeletonData(bones);
++        var boneList = new List<CSkelMeshBone>(bones);
++        ExportSkeletalSockets(sockets, boneList);
++        ExportSkeletonData(boneList);
+     }
+ 
+     public ActorXMesh(CStaticMeshLod lod, List<MaterialExporter2>? materialExports, FPackageIndex[] sockets, ExporterOptions options) : this(options)
+@@ -85,8 +86,16 @@ private void ExportSkeletalMeshLod(CSkelMeshLod lod, List<CSkelMeshBone> bones,
+         }
+ 
+         ExportCommonMeshData(lod.Sections.Value, lod.Verts, lod.Indices.Value, share, materialExports);
+-        ExportSkeletalSockets(sockets, bones);
+-        ExportSkeletonData(bones);
++
++        // Copy before appending. `bones` is the CONVERTED MESH's own RefSkeleton, and the caller
++        // hands the same list to every LOD of the same mesh -- so appending sockets in place left
++        // LOD1 carrying LOD0's sockets as well, LOD2 carrying two copies, and so on. A 54-bone B2
++        // shipped 64 / 74 / 84 / 94-bone files, the last with 10 DUPLICATE bone names, which is not
++        // a skeleton any importer can resolve by name. Sockets go on the end, after every real
++        // bone, so no skin weight's bone index moves and the copy costs one list per LOD.
++        var boneList = new List<CSkelMeshBone>(bones);
++        ExportSkeletalSockets(sockets, boneList);
++        ExportSkeletonData(boneList);
+ 
+         var numInfluences = 0;
+         for (var i = 0; i < share.Points.Count; i++)
+@@ -393,9 +402,23 @@ public void ExportSkeletalSockets(FPackageIndex[] sockets, List<CSkelMeshBone> b
+ 
+                     if (targetBoneIdx == -1) continue;
+ 
++                    // A socket may carry the SAME NAME as a bone -- usually the very bone it hangs
++                    // off. UE allows that; a PSK does not, because every consumer keys bones by
++                    // name: 121 weapon meshes here shipped two bones called `muzzle`, and a .psa
++                    // binding to that name has no way to say which it meant. Keep the socket, since
++                    // its relative transform is real data, and make the name unique instead.
++                    var socketName = socket.SocketName.Text;
++                    if (bones.Any(b => b.Name.Text.Equals(socketName, StringComparison.OrdinalIgnoreCase)))
++                    {
++                        var unique = socketName + "_socket";
++                        for (var n = 2; bones.Any(b => b.Name.Text.Equals(unique, StringComparison.OrdinalIgnoreCase)); n++)
++                            unique = $"{socketName}_socket{n}";
++                        socketName = unique;
++                    }
++
+                     var meshBone = new CSkelMeshBone
+                     {
+-                        Name = socket.SocketName.Text,
++                        Name = socketName,
+                         ParentIndex = targetBoneIdx,
+                         Position = socket.RelativeLocation,
+                         Orientation = socket.RelativeRotation.Quaternion()

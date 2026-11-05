@@ -1,0 +1,115 @@
+diff --git a/CUE4Parse-Conversion/Meshes/MeshConverter.cs b/CUE4Parse-Conversion/Meshes/MeshConverter.cs
+index d71b9eb8..81197fc3 100644
+--- a/CUE4Parse-Conversion/Meshes/MeshConverter.cs
++++ b/CUE4Parse-Conversion/Meshes/MeshConverter.cs
+@@ -396,7 +396,16 @@ public static bool TryConvert(this USkeletalMesh originalMesh, out CSkeletalMesh
+             var skeletalMeshLod = new CSkelMeshLod
+             {
+                 NumTexCoords = numTexCoords,
+-                ScreenSize = originalMesh.LODInfo[i].ScreenSize.Default,
++                // LODModels and LODInfo are separate arrays and are not guaranteed to agree in
++                // length. One game ships character meshes with 7 LOD models and 4 LODInfo
++                // entries -- a full-body character mesh among them -- and indexing LODInfo with the LODModels
++                // counter throws IndexOutOfRange from inside TryConvert, which surfaces as
++                // "Index was outside the bounds of the array" and reads like a corrupt mesh.
++                // ScreenSize is LOD-selection metadata that nothing in the export path consumes,
++                // so a missing entry is worth a default rather than losing the whole mesh.
++                ScreenSize = originalMesh.LODInfo is { } li && i < li.Length
++                    ? li[i].ScreenSize.Default
++                    : 0f,
+                 HasNormals = true,
+                 HasTangents = true,
+                 LODIndex = i,
+@@ -459,8 +468,92 @@ public static bool TryConvert(this USkeletalMesh originalMesh, out CSkeletalMesh
+             if (srcLod.ColorVertexBuffer.Data.Length == vertexCount)
+                 skeletalMeshLod.AllocateVertexColorBuffer();
+ 
++            // Which section owns each vertex, resolved from the sections' own ranges instead of
++            // assumed from their order.
++            //
++            // The walk below advances to the next section as the vertex index passes each
++            // section's end, which is only correct while sections are sorted by BaseVertexIndex.
++            // One game ships character meshes where they are NOT: one full-body mesh's LOD6
++            // has base vertices 0, 1171, 657, 0. Vertices 657..1370 then take the wrong section's
++            // BoneMap -- 6 entries where 13 were needed -- and the conversion dies on
++            // `boneMap[boneIndex]` with IndexOutOfRange, which reads as a corrupt mesh.
++            //
++            // For an ordered mesh this produces exactly the same assignment as the walk, so it
++            // changes nothing on the games that already worked.
++            int[]? sectionOfVert = null;
++            if (srcLod.Chunks.Length == 0 && srcLod.Sections.Length > 0)
++            {
++                var ordered = true;
++                for (var s = 1; s < srcLod.Sections.Length && ordered; s++)
++                    if (srcLod.Sections[s].BaseVertexIndex < srcLod.Sections[s - 1].BaseVertexIndex)
++                        ordered = false;
++
++                if (!ordered)
++                {
++                    sectionOfVert = new int[vertexCount];
++                    Array.Fill(sectionOfVert, -1);
++                    for (var s = 0; s < srcLod.Sections.Length; s++)
++                    {
++                        var sec = srcLod.Sections[s];
++                        var end = Math.Min(sec.BaseVertexIndex + sec.NumVertices, vertexCount);
++                        for (var v = Math.Max(0, sec.BaseVertexIndex); v < end; v++) sectionOfVert[v] = s;
++                    }
++                }
++            }
++
++            // Drop a LOD whose influences do not fit their section's bone map, instead of losing
++            // the whole mesh to one bad LOD.
++            //
++            // That game's full-body mesh declares 4 LODInfo entries and ships 7 LOD models;
++            // the trailing three are a second chain whose vertices reference bone indices their
++            // own sections cannot resolve -- LOD4 vertex 3745 asks for index 10 of an 8-entry map,
++            // with the sections correctly ordered and fully covering the buffer, so this is the
++            // data rather than the walk over it. Converting LOD0-3 and reporting the rest gives a
++            // usable mesh; throwing gives nothing, and every export path here defaults to LOD0.
++            {
++                var infs = vertBuffer.VertsFloat is { Length: > 0 }
++                    ? vertBuffer.VertsFloat.Select(static x => x.Infs).ToArray()
++                    : vertBuffer.VertsHalf?.Select(static x => x.Infs).ToArray() ?? [];
++                var badVert = -1;
++                for (var v = 0; v < Math.Min(vertexCount, infs.Length) && badVert < 0; v++)
++                {
++                    ushort[]? bm;
++                    if (sectionOfVert is not null)
++                        bm = sectionOfVert[v] >= 0 ? srcLod.Sections[sectionOfVert[v]].BoneMap : null;
++                    else
++                    {
++                        var s = srcLod.Sections.LastOrDefault(x => x.BaseVertexIndex <= v &&
++                                                                  v < x.BaseVertexIndex + x.NumVertices);
++                        bm = s?.BoneMap;
++                    }
++                    if (bm is null) continue;
++                    foreach (var (wgt, bi) in infs[v].BoneWeight.Zip(infs[v].BoneIndex))
++                        if (wgt != 0 && bi >= bm.Length) { badVert = v; break; }
++                }
++                if (badVert >= 0)
++                {
++                    Log.Warning(
++                        "Skeletal mesh LOD {Lod} skipped: vertex {Vert} references a bone index outside its section's bone map",
++                        i, badVert);
++                    continue;
++                }
++            }
++
+             for (var vert = 0; vert < vertexCount; vert++)
+             {
++                if (sectionOfVert is not null)
++                {
++                    // A vertex owned by no section keeps the previous one's bone map, which is the
++                    // same thing the ordered walk would have done with a gap.
++                    var si = sectionOfVert[vert];
++                    if (si >= 0)
++                    {
++                        chunkIndex = si;
++                        chunkVertexIndex = (int) (vert - srcLod.Sections[si].BaseVertexIndex);
++                        boneMap = srcLod.Sections[si].BoneMap;
++                    }
++                }
++                else
+                 while (vert >= lastChunkVertex) // this will fix any issues with empty chunks or sections
+                 {
+                     if (srcLod.Chunks.Length > 0) // proceed to next chunk or section

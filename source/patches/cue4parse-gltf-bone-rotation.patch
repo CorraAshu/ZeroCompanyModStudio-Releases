@@ -1,0 +1,33 @@
+warning: in the working copy of 'CUE4Parse-Conversion/Meshes/glTF/Gltf.cs', LF will be replaced by CRLF the next time Git touches it
+diff --git a/CUE4Parse-Conversion/Meshes/glTF/Gltf.cs b/CUE4Parse-Conversion/Meshes/glTF/Gltf.cs
+index f2b0afc2..0f9b3695 100644
+--- a/CUE4Parse-Conversion/Meshes/glTF/Gltf.cs
++++ b/CUE4Parse-Conversion/Meshes/glTF/Gltf.cs
+@@ -301,7 +301,26 @@ public static FVector SwapYZ(FVector vec)
+             return res;
+         }
+ 
+-        public static FQuat SwapYZ(FQuat quat) => new (quat.X, quat.Z, quat.Y, quat.W);
++        /// <summary>
++        /// A ROTATION through the Y/Z swap, which is a MIRROR -- so the vector part is permuted
++        /// AND NEGATED, not merely permuted.
++        ///
++        /// Swapping two axes has determinant -1. Conjugating a rotation by a reflection gives a
++        /// rotation about the reflected axis by the OPPOSITE angle, so q = (a*sin(t/2), cos(t/2))
++        /// must become (-M(a)*sin(t/2), cos(t/2)). Permuting alone leaves the angle unflipped and
++        /// every bone turns the wrong way about the swapped axis.
++        ///
++        /// What that looked like: the pelvis carried a -90 degree turn about Z instead of +90, so
++        /// its children ran DOWN the world instead of up -- the spine, neck and head descending
++        /// below the hips and the feet ending up above the shoulders. Reported by three people on
++        /// the same afternoon as "the armature is twisted" and "all imports will bring the
++        /// skeleton in upside down and twisted in on itself". The MESH was always right, because
++        /// vertices go through the FVector overload, which is a plain permutation and correct.
++        ///
++        /// ONE CALL SITE: the bone's local rotation. Positions, normals and tangents use the
++        /// FVector/Vector4 overloads and are untouched by this.
++        /// </summary>
++        public static FQuat SwapYZ(FQuat quat) => new (-quat.X, -quat.Z, -quat.Y, quat.W);
+ 
+         public static Vector4 SwapYZAndNormalize(Vector4 vec)
+         {

@@ -1,0 +1,99 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ZeroCompanyModStudioAvalonia"
+        x:Class="ZeroCompanyModStudioAvalonia.ProjectsWindow"
+        x:DataType="local:ProjectsWindow"
+        Title="Zero Company Mod Studio — Projects"
+        Width="880" Height="620" MinWidth="620" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Ground}">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.dim">
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+    </Style>
+    <Style Selector="TextBlock.faint">
+      <Setter Property="Foreground" Value="{DynamicResource Faint}"/>
+    </Style>
+    <Style Selector="TextBlock.num">
+      <Setter Property="FontFamily" Value="Consolas,Cascadia Mono,monospace"/>
+      <Setter Property="FontSize" Value="11.5"/>
+      <Setter Property="Foreground" Value="{DynamicResource Faint}"/>
+    </Style>
+  </Window.Styles>
+
+  <DockPanel>
+
+    <!-- A REAL Menu, not a button dressed as one. The Level Editor's bar is this control, so
+         using it here means the two match by construction — same padding, same hover, same
+         height — and go on matching when the theme changes. A MenuItem with nothing under it
+         behaves as a flat command, which is exactly what Find is. -->
+    <Menu DockPanel.Dock="Top" Background="{DynamicResource Chrome}" Height="30">
+      <MenuItem Header="Find…" Click="OnBrowse"
+                ToolTip.Tip="Open a mod project from anywhere on disk, not just the mods folder."/>
+    </Menu>
+
+    <!-- The one thing this window is for, kept where the eye lands first rather than at the end
+         of a list that grows. -->
+    <Border DockPanel.Dock="Top" Background="{DynamicResource Chrome}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="20,16">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="3">
+          <TextBlock Text="Your mods" FontSize="17" FontWeight="SemiBold"
+                     Foreground="{DynamicResource Fore}"/>
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Classes="dim" FontSize="12" VerticalAlignment="Center"
+                       Text="{Binding FolderLine}"/>
+            <Button Content="Change…" Click="OnChangeFolder" FontSize="11.5" Padding="9,2"/>
+          </StackPanel>
+        </StackPanel>
+        <Button Grid.Column="1" Content="Create New Mod" Click="OnCreate"
+                Padding="18,9" FontSize="13.5" FontWeight="SemiBold"
+                VerticalAlignment="Center"
+                Background="{DynamicResource Accent}" Foreground="#1A1408"/>
+      </Grid>
+    </Border>
+
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource Chrome}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="20,10">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" Classes="dim" FontSize="12" VerticalAlignment="Center"
+                   Text="{Binding CountLine}"/>
+        <Button Grid.Column="1" Content="Open" Click="OnOpenSelected" FontSize="12.5"
+                IsEnabled="{Binding HasSelection}" Padding="20,6"/>
+      </Grid>
+    </Border>
+
+    <!-- EMPTY IS ITS OWN STATE, not an empty list. A person opening this for the first time is
+         told what to do; a list that is simply blank says only that something might be wrong. -->
+    <Panel>
+      <TextBlock IsVisible="{Binding IsEmpty}" Classes="dim"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 TextAlignment="Center" FontSize="13.5"
+                 Text="No mods here yet.&#x0a;Create New Mod starts one."/>
+
+      <ListBox Name="ModList" IsVisible="{Binding HasAny}"
+               ItemsSource="{Binding Mods}"
+               SelectedItem="{Binding Selected, Mode=TwoWay}"
+               DoubleTapped="OnListDoubleTapped"
+               Background="Transparent" BorderThickness="0" Padding="12,10">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="local:ModRow">
+            <Border Padding="12,10" CornerRadius="3">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="3">
+                  <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold"
+                             Foreground="{DynamicResource Fore}"/>
+                  <TextBlock Classes="dim" FontSize="12" Text="{Binding Detail}"/>
+                  <TextBlock Classes="num" Text="{Binding Path}"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Classes="dim" FontSize="12"
+                           VerticalAlignment="Center" Text="{Binding When}"/>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Panel>
+  </DockPanel>
+</Window>

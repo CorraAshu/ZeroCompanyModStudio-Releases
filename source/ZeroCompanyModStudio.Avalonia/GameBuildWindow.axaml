@@ -1,0 +1,34 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ZeroCompanyModStudioAvalonia.GameBuildWindow"
+        Title="Zero Company Mod Studio — The game has changed"
+        Width="620" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Ground}">
+
+  <!--
+    THE OLD STUDIO'S "Carry on anyway" SCREEN, in its words.
+
+    The mappings file describes one build of the game. When the game is patched past it nothing
+    fails - the tool reads WRONG VALUES, and a mod built on them installs cleanly and is wrong in
+    game. So this is shown, once the Studio knows, and it can only be dismissed by saying so. A
+    warning, never a refusal: the layout often did not move, and being locked out by a check that
+    is only probably right is worse than being told.
+  -->
+  <StackPanel Margin="22,20" Spacing="12">
+
+    <TextBlock Name="Heading" Text="The game has changed since this Studio was built." FontSize="17"
+               FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource Accent}"/>
+
+    <TextBlock Name="Say" FontSize="12.5" TextWrapping="Wrap" Foreground="{DynamicResource Fore}"/>
+
+    <TextBlock Name="Means" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"
+               Text="What this means: the file describing the game's data layout may be out of date. Parts may read with the wrong names, the wrong icons, or the wrong values - and a mod built from them can install cleanly and still be wrong in game. Carrying on will not change your game files, and the mappings may well still be right, but a newer version of this Studio may already have caught up. It is worth a look before you build anything you care about."/>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+      <Button Content="Carry on anyway" Click="OnCarryOn" FontSize="12.5" Padding="22,6"
+              IsDefault="True" Background="{DynamicResource Accent}" Foreground="#1A1408"/>
+    </StackPanel>
+  </StackPanel>
+</Window>

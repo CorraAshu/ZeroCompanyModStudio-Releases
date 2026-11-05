@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ZeroCompanyModStudioAvalonia"
+        x:Class="ZeroCompanyModStudioAvalonia.NewModWindow"
+        x:DataType="local:NewModVm"
+        Title="Create New Mod"
+        Width="520" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Ground}">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.dim">
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+    </Style>
+    <Style Selector="TextBlock.num">
+      <Setter Property="FontFamily" Value="Consolas,Cascadia Mono,monospace"/>
+      <Setter Property="FontSize" Value="11.5"/>
+      <Setter Property="Foreground" Value="{DynamicResource Faint}"/>
+    </Style>
+  </Window.Styles>
+
+  <StackPanel Margin="22,20" Spacing="12">
+
+    <TextBlock Text="Name your mod" FontSize="17" FontWeight="SemiBold"
+               Foreground="{DynamicResource Fore}"/>
+
+    <TextBlock Classes="dim" FontSize="12.5" TextWrapping="Wrap"
+               Text="This names the project file and the folder its assets are built into. You can change what players see later; the folder is fixed once the mod is built, because a package that moves becomes a different mod."/>
+
+    <TextBox Name="NameBox" Text="{Binding ModName, Mode=TwoWay}"
+             Watermark="what this mod is called" FontSize="14"
+             KeyDown="OnNameKey"/>
+
+    <!-- WHAT WILL HAPPEN, or WHY IT WILL NOT, checked on every keystroke against the same
+         ModLibrary.PathFor the ImGui Studio calls. Refusing only on the button press is how a
+         person ends up typing a whole name and then being told it was never going to work. -->
+    <TextBlock Classes="num" TextWrapping="Wrap" Text="{Binding Verdict}"
+               Foreground="{Binding VerdictBrush}"/>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
+      <Button Content="Cancel" Click="OnCancel" FontSize="12.5" Padding="18,6"/>
+      <Button Content="Create" Click="OnCreate" FontSize="12.5" Padding="22,6"
+              IsEnabled="{Binding CanCreate}" IsDefault="True"
+              Background="{DynamicResource Accent}" Foreground="#1A1408"/>
+    </StackPanel>
+  </StackPanel>
+</Window>

@@ -1,0 +1,16 @@
+# Staged as source/.gitignore by tools/snapshot.ps1.
+
+# Build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+
+# Runtime-downloaded natives (Oodle, Detex) and the programs' scratch folders
+**/.data/
+*.log
+
+# A developer harness folder, if you make one: the projects define DEV only when ../dev exists
+dev/

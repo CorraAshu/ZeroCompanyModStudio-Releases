@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ZeroCompanyModStudioAvalonia"
+        x:Class="ZeroCompanyModStudioAvalonia.ConfirmWindow"
+        Title="Are you sure?"
+        Width="560" SizeToContent="Height"
+        MinWidth="420"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Ground}">
+
+  <!--
+    ASK BEFORE SOMETHING CANNOT BE UNDONE.
+
+    The Studio has no undo — the Edit menu's Undo and Redo are there and disabled, because undo
+    here would have to be snapshots of the project TEXT and that is not built yet. So the one
+    thing that removes work has to ask first, and has to say WHAT it is about to remove rather
+    than "are you sure?" over a question nobody can answer without looking behind the dialog.
+
+    Cancel is the default and has focus: a dialog that removes work on Enter is a dialog that
+    removes work by accident.
+  -->
+
+  <StackPanel Margin="16" Spacing="10">
+    <TextBlock Name="Heading" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"
+               Foreground="{DynamicResource Fore}"/>
+
+    <TextBlock Name="Detail" FontSize="11.5" TextWrapping="Wrap"
+               Foreground="{DynamicResource Muted}"/>
+
+    <!-- WHAT ELSE IT AFFECTS, in the danger colour, and absent when there is nothing to say. -->
+    <Border Name="WarnBox" Padding="9,7" Background="{DynamicResource Raised}"
+            BorderBrush="#F87171" BorderThickness="2,1,1,1">
+      <TextBlock Name="Warn" FontSize="11.5" TextWrapping="Wrap" Foreground="#F87171"/>
+    </Border>
+
+    <TextBlock Name="Aside" FontSize="10.5" TextWrapping="Wrap"
+               Foreground="{DynamicResource Faint}"/>
+
+    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,4,0,0">
+      <Button Grid.Column="1" Name="No" Content="Cancel" Click="OnNo"
+              Padding="16,5" FontSize="12" IsCancel="True" Margin="0,0,8,0"/>
+      <Button Grid.Column="2" Name="Yes" Click="OnYes"
+              Padding="16,5" FontSize="12"
+              Foreground="#F87171"/>
+    </Grid>
+  </StackPanel>
+</Window>

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="../FModel-dev/CUE4Parse/CUE4Parse-Conversion/CUE4Parse-Conversion.csproj" />
+  <Project Path="../FModel-dev/CUE4Parse/CUE4Parse/CUE4Parse.csproj" />
+  <Project Path="UEToolkit.Core/UEToolkit.Core.csproj" />
+  <Project Path="ZeroCompanyLevelEditor/ZeroCompanyLevelEditor.csproj" />
+  <Project Path="ZeroCompanyModStudio.Avalonia/ZeroCompanyModStudio.Avalonia.csproj" />
+</Solution>

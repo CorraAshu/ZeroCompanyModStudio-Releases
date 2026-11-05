@@ -1,0 +1,31 @@
+diff --git a/CUE4Parse-Conversion/ActorX/ActorXUtils.cs b/CUE4Parse-Conversion/ActorX/ActorXUtils.cs
+index 9a2f17db..e0e44a47 100644
+--- a/CUE4Parse-Conversion/ActorX/ActorXUtils.cs
++++ b/CUE4Parse-Conversion/ActorX/ActorXUtils.cs
+@@ -16,9 +16,25 @@ public static void SerializeChunkHeader(this FArchiveWriter Ar, VChunkHeader hea
+         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+         public static void Write(this FArchiveWriter Ar, string value, int len)
+         {
++            // ActorX fixed-width fields are NUL-terminated, so the copy has to be clamped to
++            // len-1 -- never to the source length, which is what this used to do. Any name
++            // longer than the field then threw straight out of BlockCopy, and the export of
++            // that whole asset was lost.
++            //
++            // It is not a corner case. Zero Company loses ~2.4% of its animations to it,
++            // every one a facial clip whose asset name is the sequence name twice over
++            // ("A_Hawks_FacialIdle_FlabberGasted_Anim_A_Hawks_FacialIdle_FlabberGasted", 70
++            // chars against a 64-byte field). Both PSK and PSA bone-name fields are the same
++            // 64 bytes, so a long bone name would have done it too.
++            //
++            // Truncation can in principle collide two names that share their first 63 bytes.
++            // That is the right trade here: the field is metadata, the FILE name is what
++            // identifies an export, and ActorX itself truncates. Losing the asset entirely
++            // is strictly worse than shortening a label.
+             var padded = new byte[len];
+             var bytes = Encoding.UTF8.GetBytes(value);
+-            Buffer.BlockCopy(bytes, 0, padded, 0, bytes.Length);
++            var count = bytes.Length < len - 1 ? bytes.Length : len - 1;
++            Buffer.BlockCopy(bytes, 0, padded, 0, count);
+             Ar.Write(padded);
+         }
+     }

@@ -1,0 +1,86 @@
+{
+  "_Notes": [
+    "Template for Zero Company Mod Studio. PaksDirectory and MappingsFile are filled in at",
+    "startup: the install is found on this machine, and the usmap comes from the mappings folder",
+    "beside the executable. The filled-in copy is written to the settings folder beside the program, so this file is",
+    "never modified and a broken setup is fixed by deleting that copy rather than editing this."
+  ],
+  "Name": "Star Wars Zero Company",
+  "PaksDirectory": "",
+  "EngineVersion": "GAME_UE5_6",
+  "MappingsFile": "",
+  "AesKey": null,
+  "ExtraAesKeys": {},
+  "TexturePlatform": "DesktopMobile",
+  "CharacterPaths": [
+    "SWZeroCompany/Content/Game/Characters/"
+  ],
+  "ExcludePaths": [],
+  "Atlas": {
+    "Enabled": false
+  },
+  "Readers": {
+    "CustomizationParts": true
+  },
+  "Classify": {
+    "SkeletalMeshPrefixes": [
+      "SK_"
+    ],
+    "StaticMeshPrefixes": [
+      "SM_"
+    ],
+    "TexturePrefixes": [
+      "T_"
+    ],
+    "MaterialPrefixes": [
+      "MI",
+      "M_",
+      "MM_"
+    ],
+    "AnimationPrefixes": [
+      "A_",
+      "AS_"
+    ],
+    "BlueprintPrefixes": [
+      "BP_",
+      "ABP_"
+    ],
+    "TextureFolders": [
+      "/textures/",
+      "/texture/"
+    ],
+    "MaterialFolders": [
+      "/materials/",
+      "/material/"
+    ],
+    "AnimationFolders": [
+      "/animations/",
+      "/anim/",
+      "/anims/"
+    ],
+    "SkeletalMeshFolders": [],
+    "DataSuffixes": [
+      "_Skeleton",
+      "_PhysicsAsset"
+    ],
+    "DataPrefixes": [
+      "DA_",
+      "CR_"
+    ],
+    "DataContains": [
+      "AnimBP",
+      "AnimBlueprint",
+      "ControlRig",
+      "LODSettings"
+    ],
+    "TextureSuffixes": [
+      "_D",
+      "_N",
+      "_C",
+      "_RMA",
+      "_ORM",
+      "_M",
+      "_S"
+    ]
+  }
+}

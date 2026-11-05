@@ -1,0 +1,51 @@
+diff --git a/CUE4Parse-Conversion/Animations/PSA/FAnimationRuntime.cs b/CUE4Parse-Conversion/Animations/PSA/FAnimationRuntime.cs
+index bef076b7..f60569cf 100644
+--- a/CUE4Parse-Conversion/Animations/PSA/FAnimationRuntime.cs
++++ b/CUE4Parse-Conversion/Animations/PSA/FAnimationRuntime.cs
+@@ -143,7 +143,17 @@ public static void AccumulateLocalSpaceAdditivePoseInternal(FCompactPose basePos
+             if (weight < 0.999989986419678)
+                 throw new NotImplementedException();
+ 
+-            for (int index = 0; index < basePose.Bones.Length; index++)
++            // The loop is bounded by the BASE pose but indexes the ADDITIVE one, so an additive
++            // clip carrying fewer bones than its base walks off the end. That happens whenever
++            // the base pose is a different animation rather than the rest pose: Zero Company's
++            // A_2HRifle_Peek_F_* are ABPT_AnimFrame additives over A_2HRifle_Peek_F_CC_ref, and
++            // all eight threw here.
++            //
++            // Clamping is the correct behaviour, not just a guard. A bone with no additive track
++            // has no delta to apply, so leaving the base transform untouched is exactly what an
++            // absent track means -- the alternative would be inventing a contribution for it.
++            var count = Math.Min(basePose.Bones.Length, additivePose.Bones.Length);
++            for (int index = 0; index < count; index++)
+             {
+                 basePose.Bones[index].AccumulateWithAdditiveScale(additivePose.Bones[index].Transform, weight);
+             }
+diff --git a/CUE4Parse-Conversion/Animations/PSA/FCompactPose.cs b/CUE4Parse-Conversion/Animations/PSA/FCompactPose.cs
+index 02324cc8..ffeaac8d 100644
+--- a/CUE4Parse-Conversion/Animations/PSA/FCompactPose.cs
++++ b/CUE4Parse-Conversion/Animations/PSA/FCompactPose.cs
+@@ -20,9 +20,22 @@ public void NormalizeRotations()
+ 
+         public void PushTransformAtFrame(List<CAnimTrack> dstTracks, int frame)
+         {
++            // The assert states the invariant exactly -- and is compiled out in Release, which is
++            // why violating it surfaced as an opaque ArgumentOutOfRangeException from List.get_Item
++            // rather than as the bone-count mismatch it actually is.
++            //
++            // ConvertAdditive sizes Tracks from the ADDITIVE pose's bone count and then pushes the
++            // REFERENCE pose through it. When the base pose is a different animation rather than
++            // the rest pose those counts differ, and the reference pose is the longer of the two.
++            // Zero Company's A_2HRifle_Peek_F_* (ABPT_AnimFrame over ..._CC_ref) are that case.
++            //
++            // Clamping is right rather than merely safe: a track exists only for a bone the clip
++            // actually animates, so a pose bone with no track has nowhere to be written and
++            // inventing one would fabricate animation the game does not have.
+             Debug.Assert(dstTracks.Count == Bones.Length);
++            var count = Math.Min(Bones.Length, dstTracks.Count);
+ 
+-            for (int index = 0; index < Bones.Length; ++index)
++            for (int index = 0; index < count; ++index)
+             {
+                 if (!Bones[index].IsValidKey) continue;
+ 

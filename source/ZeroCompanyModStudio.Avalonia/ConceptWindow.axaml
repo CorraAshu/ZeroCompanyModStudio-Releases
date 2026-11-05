@@ -1,0 +1,821 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ZeroCompanyModStudioAvalonia.ConceptWindow"
+        Title="Zero Company Mod Studio — edit panel concept"
+        Width="1780" Height="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Ground}">
+
+  <!--
+    A CONCEPT, DRAWN BY THE TOOL ITSELF.
+
+    Everything in this window is static: no project is open and nothing saves. It exists so the
+    look can be judged before it is wired, and because a mock-up made anywhere else is a promise
+    the tool might not be able to keep — which is a mistake this project has already paid for
+    once. Every control here is one Avalonia draws today, so whatever is chosen lifts straight
+    into MainWindow.axaml.
+  -->
+
+  <Window.Styles>
+    <Style Selector="TextBlock.faint">
+      <Setter Property="Foreground" Value="{DynamicResource Faint}"/>
+    </Style>
+    <Style Selector="TextBlock.dim">
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+    </Style>
+    <Style Selector="TextBlock.num">
+      <Setter Property="FontFamily" Value="Consolas,Cascadia Mono,monospace"/>
+      <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+    </Style>
+    <Style Selector="Button.tiny">
+      <Setter Property="Padding" Value="7,1"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="MinWidth" Value="0"/>
+      <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+
+    <!-- A SECTION IS A CARD, not a line of small caps with everything after it. The border is
+         what says where a section stops, which is the whole reason the flat version bled into
+         the sheet under it. -->
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource Panel}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Margin" Value="0,0,0,10"/>
+    </Style>
+    <Style Selector="Border.cardhead">
+      <Setter Property="Background" Value="{DynamicResource Chrome}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="0,0,0,1"/>
+      <Setter Property="Padding" Value="11,6"/>
+    </Style>
+    <!-- One editable thing is a ROW with its own ground, so its buttons sit ON it instead of
+         drifting to the far edge of a two-thousand-pixel window. -->
+    <Style Selector="Border.row">
+      <Setter Property="Background" Value="{DynamicResource Raised}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="9,7"/>
+    </Style>
+    <Style Selector="Border.rail">
+      <Setter Property="Padding" Value="10,5"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="2,0,0,0"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+    <Style Selector="Border.rail.on">
+      <Setter Property="Background" Value="{DynamicResource Raised}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+    </Style>
+    <Style Selector="Border.chip">
+      <Setter Property="Background" Value="{DynamicResource Raised}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="7,2"/>
+      <Setter Property="Margin" Value="0,0,5,5"/>
+    </Style>
+    <Style Selector="TextBlock.sechead">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+      <Setter Property="LetterSpacing" Value="1.1"/>
+    </Style>
+  </Window.Styles>
+
+  <DockPanel>
+
+    <!-- The only part of this window that is not the proposal: a way to switch between the two
+         shapes being offered, so both can be looked at. -->
+    <Border DockPanel.Dock="Top" Background="#241B0D" BorderBrush="{DynamicResource Accent}"
+            BorderThickness="0,0,0,1" Padding="12,7">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="CONCEPT" FontSize="11" LetterSpacing="1.4" VerticalAlignment="Center"
+                   Foreground="{DynamicResource Accent}"/>
+        <TextBlock Text="nothing here is wired — it is drawn so the shape can be judged first"
+                   FontSize="11.5" VerticalAlignment="Center" Classes="dim"/>
+        <Button Name="BtnA" Classes="tiny" Content="A — every section, one scroll"
+                Click="OnLayoutA" Margin="14,0,0,0"/>
+        <Button Name="BtnB" Classes="tiny" Content="B — one section at a time" Click="OnLayoutB"/>
+      </StackPanel>
+    </Border>
+
+    <!-- The Data Explorer, sketched. It is here only so the proportions are honest: the editor
+         has about 1,450 pixels to live in on this monitor, not 1,780. -->
+    <Border DockPanel.Dock="Left" Width="300" Background="{DynamicResource Panel}"
+            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0">
+      <StackPanel Margin="9,8" Spacing="3">
+        <TextBlock Text="Data Explorer" FontSize="11.5" Classes="dim"/>
+        <TextBox FontSize="11" Padding="5,2" CornerRadius="0" Margin="0,3,0,5"
+                 Watermark="filter"/>
+        <TextBlock Text="▾  Clothing" FontSize="11.5" Foreground="{DynamicResource Fore}"/>
+        <TextBlock Text="     ▾  Helmets" FontSize="11.5" Classes="dim"/>
+        <Border Background="{DynamicResource Raised}" Padding="4,2" Margin="0,1">
+          <TextBlock Text="          Clone Helmet" FontSize="11.5"
+                     Foreground="{DynamicResource Accent}"/>
+        </Border>
+        <TextBlock Text="          ARF Helmet" FontSize="11.5" Classes="dim" Margin="0,1"/>
+        <TextBlock Text="          Clone Pilot Helmet" FontSize="11.5" Classes="dim" Margin="0,1"/>
+        <TextBlock Text="     ▸  Torsos" FontSize="11.5" Classes="dim" Margin="0,1"/>
+        <TextBlock Text="     ▸  Legs" FontSize="11.5" Classes="dim" Margin="0,1"/>
+        <TextBlock Text="▸  Weapons" FontSize="11.5" Classes="dim" Margin="0,1"/>
+        <TextBlock Text="▸  Characters" FontSize="11.5" Classes="dim" Margin="0,1"/>
+      </StackPanel>
+    </Border>
+
+    <DockPanel>
+
+      <!-- THE SAVE BAR IS PINNED, not the last thing at the bottom of a long scroll. The count
+           on the left is the answer to "what have I actually changed?", which is the question a
+           panel this size will be asked constantly. -->
+      <Border DockPanel.Dock="Bottom" Background="{DynamicResource Chrome}"
+              BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="12,8">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+            <Ellipse Width="7" Height="7" Fill="{DynamicResource Accent}"
+                     VerticalAlignment="Center"/>
+            <TextBlock Text="2 changes not saved" FontSize="11.5"
+                       Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
+            <TextBlock Text="— the masculine mesh, and one texture" FontSize="11.5"
+                       Classes="faint" VerticalAlignment="Center"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+            <Button Classes="tiny" Content="Undo all of it"/>
+            <Button Classes="tiny" Content="Stop editing"/>
+            <Button Classes="tiny" Content="Save changes" FontSize="11.5" Padding="12,2"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- The tab strip, sketched, for the same reason the tree is. -->
+      <Border DockPanel.Dock="Top" Background="{DynamicResource Ground}"
+              BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="6,4,6,0">
+        <StackPanel Orientation="Horizontal" Spacing="2">
+          <Border Background="{DynamicResource Raised}" BorderBrush="{DynamicResource Accent}"
+                  BorderThickness="1,2,1,0" Padding="9,4">
+            <TextBlock Text="Clone Helmet" FontSize="11.5" Foreground="{DynamicResource Fore}"/>
+          </Border>
+          <Border Background="{DynamicResource Chrome}" BorderBrush="{DynamicResource Line}"
+                  BorderThickness="1,1,1,0" Padding="9,4">
+            <TextBlock Text="SK_HAAF_Clo001_HELM" FontSize="11.5" Classes="faint"/>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <!-- THE HEADER STAYS. His words were "a completely new area under the clone helmet icon,
+           name and where it says test mod overrides this part" — so the part never stops
+           identifying itself while it is being edited. -->
+      <Border DockPanel.Dock="Top" Background="{DynamicResource Panel}"
+              BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="14,10">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <Border Grid.Column="0" Width="54" Height="54" Background="{DynamicResource Raised}"
+                  BorderBrush="{DynamicResource Line}" BorderThickness="1">
+            <TextBlock Text="icon" FontSize="10" Classes="faint"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center" Spacing="2">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Clone Helmet" FontSize="16"
+                         Foreground="{DynamicResource Fore}"/>
+              <Border Background="{DynamicResource Accent}" Padding="6,1"
+                      VerticalAlignment="Center">
+                <TextBlock Text="EDITING THE GAME'S OWN" FontSize="9.5" LetterSpacing="0.8"
+                           Foreground="#12151A"/>
+              </Border>
+            </StackPanel>
+            <TextBlock Text="CPD_H_Outfit_Clo001_HELM_TintE" FontSize="11" Classes="faint"
+                       FontFamily="Consolas,Cascadia Mono,monospace"/>
+            <TextBlock FontSize="11" Classes="dim"
+                       Text="Test Mod overrides this part. Every character already wearing it changes too — Duplicate instead to leave the game's copy alone."/>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
+                      VerticalAlignment="Center">
+            <Button Classes="tiny" Content="Duplicate instead"/>
+            <Button Name="BtnSheet" Classes="tiny" Content="What it is now  ◂"
+                    Click="OnToggleSheet"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- rail | the sections | what it is now -->
+      <Grid ColumnDefinitions="190,1,*,Auto">
+
+        <!-- THE RAIL. It is what lets this keep growing: numbers, deeper changes and whatever
+             comes after are another line here, not another thousand pixels of scroll. The dot
+             marks a section that has been changed and not saved. -->
+        <ScrollViewer Grid.Column="0" Background="{DynamicResource Chrome}">
+          <StackPanel Margin="0,8" Spacing="1">
+            <TextBlock Text="WHAT YOU CAN CHANGE" FontSize="9.5" LetterSpacing="1"
+                       Classes="faint" Margin="12,0,0,6"/>
+            <Border Name="RailIdentity" Classes="rail on" Tag="Identity" PointerPressed="OnRail">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="What it is called" FontSize="11.5"
+                           Foreground="{DynamicResource Fore}"/>
+              </Grid>
+            </Border>
+            <Border Name="RailMeshes" Classes="rail" Tag="Meshes" PointerPressed="OnRail">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Its meshes" FontSize="11.5"
+                           Foreground="{DynamicResource Fore}"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                  <TextBlock Text="2" FontSize="10.5" Classes="faint" VerticalAlignment="Center"/>
+                  <Ellipse Width="6" Height="6" Fill="{DynamicResource Accent}"
+                           VerticalAlignment="Center"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+            <Border Name="RailIcon" Classes="rail" Tag="Icon" PointerPressed="OnRail">
+              <TextBlock Text="Its picture" FontSize="11.5" Foreground="{DynamicResource Fore}"/>
+            </Border>
+            <Border Name="RailTextures" Classes="rail" Tag="Textures" PointerPressed="OnRail">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Its textures" FontSize="11.5"
+                           Foreground="{DynamicResource Fore}"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                  <TextBlock Text="4" FontSize="10.5" Classes="faint" VerticalAlignment="Center"/>
+                  <Ellipse Width="6" Height="6" Fill="{DynamicResource Accent}"
+                           VerticalAlignment="Center"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+            <Border Name="RailColours" Classes="rail" Tag="Colours" PointerPressed="OnRail">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Its colours" FontSize="11.5"
+                           Foreground="{DynamicResource Fore}"/>
+                <TextBlock Grid.Column="1" Text="4" FontSize="10.5" Classes="faint"
+                           VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+            <Border Name="RailOffered" Classes="rail" Tag="Offered" PointerPressed="OnRail">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Who it is for" FontSize="11.5"
+                           Foreground="{DynamicResource Fore}"/>
+                <TextBlock Grid.Column="1" Text="3" FontSize="10.5" Classes="faint"
+                           VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+            <Border Name="RailSlot" Classes="rail" Tag="Slot" PointerPressed="OnRail">
+              <TextBlock Text="Its own slot" FontSize="11.5" Foreground="{DynamicResource Fore}"/>
+            </Border>
+            <Border Name="RailNumbers" Classes="rail" Tag="Numbers" PointerPressed="OnRail">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Its numbers" FontSize="11.5"
+                           Foreground="{DynamicResource Fore}"/>
+                <TextBlock Grid.Column="1" Text="11" FontSize="10.5" Classes="faint"
+                           VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+            <Border Name="RailDeeper" Classes="rail" Tag="Deeper" PointerPressed="OnRail">
+              <TextBlock Text="Deeper changes" FontSize="11.5"
+                         Foreground="{DynamicResource Fore}"/>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Column="1" Background="{DynamicResource Line}"/>
+
+        <ScrollViewer Grid.Column="2" Name="Cards" Padding="14,12,14,4">
+          <!-- CAPPED. A name box has no business being 1,400 pixels wide, and the buttons at the
+               end of a row that wide end up an arm's length from the thing they act on. -->
+          <StackPanel MaxWidth="880" HorizontalAlignment="Left">
+
+            <!-- ======================================= WHAT IT IS CALLED -->
+            <Border Name="CardIdentity" Classes="card">
+              <StackPanel>
+                <Border Classes="cardhead">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="sechead" Text="WHAT IT IS CALLED"/>
+                    <TextBlock Grid.Column="1" Text="what the menu shows" FontSize="10.5"
+                               Classes="faint" VerticalAlignment="Center"/>
+                  </Grid>
+                </Border>
+                <Grid Margin="12" ColumnDefinitions="118,*" RowDefinitions="Auto,Auto">
+                  <TextBlock Text="Name" FontSize="11.5" Classes="dim"
+                             VerticalAlignment="Center"/>
+                  <TextBox Grid.Column="1" FontSize="12" Padding="6,3" CornerRadius="0"
+                           HorizontalAlignment="Left" Width="420"
+                           Text="Clone Helmet"/>
+                  <TextBlock Grid.Row="1" Text="Description" FontSize="11.5" Classes="dim"
+                             Margin="0,8,0,0" VerticalAlignment="Top"/>
+                  <TextBox Grid.Row="1" Grid.Column="1" FontSize="12" Padding="6,3"
+                           CornerRadius="0" Margin="0,8,0,0" AcceptsReturn="True"
+                           TextWrapping="Wrap" MinHeight="52"
+                           HorizontalAlignment="Left" Width="600"
+                           Text="Standard-issue Phase I helmet of the Grand Army of the Republic."/>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <!-- ======================================= ITS MESHES -->
+            <Border Name="CardMeshes" Classes="card">
+              <StackPanel>
+                <Border Classes="cardhead">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="sechead" Text="ITS MESHES"/>
+                    <TextBlock Grid.Column="1" Text="2 body types, both here" FontSize="10.5"
+                               Classes="faint" VerticalAlignment="Center"/>
+                  </Grid>
+                </Border>
+                <StackPanel Margin="12" Spacing="6">
+                  <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap"
+                             Text="Every body type this part carries, at once. Pick re-points it at another of the game's meshes; Import puts your own FBX over this one; View opens it in the 3D tab."/>
+
+                  <Border Classes="row">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Grid.Column="0" Spacing="1">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                          <TextBlock Text="Average / Feminine" FontSize="12"
+                                     Foreground="{DynamicResource Fore}"/>
+                          <TextBlock Text="unchanged" FontSize="10" Classes="faint"
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="SK_HAAF_Clo001_HELM" FontSize="10.5" Classes="faint"
+                                   FontFamily="Consolas,Cascadia Mono,monospace"/>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                  VerticalAlignment="Center">
+                        <Button Classes="tiny" Content="Pick…"/>
+                        <Button Classes="tiny" Content="Import…"/>
+                        <Button Classes="tiny" Content="View"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+
+                  <!-- A CHANGED ROW LOOKS CHANGED. Accent edge, what it now is, and the way
+                       back — which is the same right-click Revert the Data Explorer has, put
+                       where the change was made. -->
+                  <Border Classes="row" BorderBrush="{DynamicResource Accent}"
+                          BorderThickness="2,1,1,1">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Grid.Column="0" Spacing="1">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                          <TextBlock Text="Average / Masculine" FontSize="12"
+                                     Foreground="{DynamicResource Fore}"/>
+                          <TextBlock Text="your own mesh" FontSize="10"
+                                     Foreground="{DynamicResource Accent}"
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <TextBlock Text="ARF_helm_v3.fbx" FontSize="10.5"
+                                     Foreground="{DynamicResource Accent}"
+                                     FontFamily="Consolas,Cascadia Mono,monospace"/>
+                          <TextBlock Text="over SK_HAAM_Clo001_HELM · 14,208 tris · rig matched"
+                                     FontSize="10.5" Classes="faint"/>
+                        </StackPanel>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                  VerticalAlignment="Center">
+                        <Button Classes="tiny" Content="Pick…"/>
+                        <Button Classes="tiny" Content="Import…"/>
+                        <Button Classes="tiny" Content="View"/>
+                        <Button Classes="tiny" Content="Revert"
+                                Foreground="{DynamicResource Accent}"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+
+                  <CheckBox FontSize="11.5" Content="Let a replacement be a very different size"
+                            Margin="0,2,0,0"/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- ======================================= ITS PICTURE -->
+            <Border Name="CardIcon" Classes="card">
+              <StackPanel>
+                <Border Classes="cardhead">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="sechead" Text="ITS PICTURE"/>
+                    <TextBlock Grid.Column="1" Text="the card in the menu" FontSize="10.5"
+                               Classes="faint" VerticalAlignment="Center"/>
+                  </Grid>
+                </Border>
+                <Border Classes="row" Margin="12">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Border Grid.Column="0" Width="60" Height="60"
+                            Background="{DynamicResource Chrome}"
+                            BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                      <TextBlock Text="128×128" FontSize="9.5" Classes="faint"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="11,0,0,0" VerticalAlignment="Center"
+                                Spacing="2">
+                      <TextBlock Text="the game's own picture" FontSize="12"
+                                 Foreground="{DynamicResource Fore}"/>
+                      <TextBlock Text="T_Icon_Clo001_HELM · 128×128 · BC7" FontSize="10.5"
+                                 Classes="faint"
+                                 FontFamily="Consolas,Cascadia Mono,monospace"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4"
+                                VerticalAlignment="Center">
+                      <Button Classes="tiny" Content="Pick…"/>
+                      <Button Classes="tiny" Content="Import…"/>
+                      <Button Classes="tiny" Content="View"/>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </StackPanel>
+            </Border>
+
+            <!-- ======================================= ITS TEXTURES -->
+            <Border Name="CardTextures" Classes="card">
+              <StackPanel>
+                <Border Classes="cardhead">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="sechead" Text="ITS TEXTURES"/>
+                    <TextBlock Grid.Column="1" Text="what the mesh above wears" FontSize="10.5"
+                               Classes="faint" VerticalAlignment="Center"/>
+                  </Grid>
+                </Border>
+                <StackPanel Margin="12" Spacing="6">
+                  <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap"
+                             Text="Import replaces the texture wherever the game uses it. View opens it in the 2D tab, where it can be exported, channel-split and put back."/>
+
+                  <Border Classes="row">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="1">
+                        <TextBlock Text="Base Colour" FontSize="12"
+                                   Foreground="{DynamicResource Fore}"/>
+                        <TextBlock Text="T_Clo001_HELM_D · 2048² · BC7" FontSize="10.5"
+                                   Classes="faint"
+                                   FontFamily="Consolas,Cascadia Mono,monospace"/>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                  VerticalAlignment="Center">
+                        <Button Classes="tiny" Content="Pick…"/>
+                        <Button Classes="tiny" Content="Import…"/>
+                        <Button Classes="tiny" Content="View"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+
+                  <Border Classes="row" BorderBrush="{DynamicResource Accent}"
+                          BorderThickness="2,1,1,1">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="1">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                          <TextBlock Text="Base Mask 1 VT" FontSize="12"
+                                     Foreground="{DynamicResource Fore}"/>
+                          <TextBlock Text="yours" FontSize="10"
+                                     Foreground="{DynamicResource Accent}"
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="arf_mask.png · 2048² · where the colours paint"
+                                   FontSize="10.5" Foreground="{DynamicResource Accent}"
+                                   FontFamily="Consolas,Cascadia Mono,monospace"/>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                  VerticalAlignment="Center">
+                        <Button Classes="tiny" Content="Pick…"/>
+                        <Button Classes="tiny" Content="Import…"/>
+                        <Button Classes="tiny" Content="View"/>
+                        <Button Classes="tiny" Content="Revert"
+                                Foreground="{DynamicResource Accent}"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+
+                  <Border Classes="row">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="1">
+                        <TextBlock Text="Normal" FontSize="12"
+                                   Foreground="{DynamicResource Fore}"/>
+                        <TextBlock Text="T_Clo001_HELM_N · 2048² · BC5" FontSize="10.5"
+                                   Classes="faint"
+                                   FontFamily="Consolas,Cascadia Mono,monospace"/>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                  VerticalAlignment="Center">
+                        <Button Classes="tiny" Content="Pick…"/>
+                        <Button Classes="tiny" Content="Import…"/>
+                        <Button Classes="tiny" Content="View"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+
+                  <Border Classes="row">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="1">
+                        <TextBlock Text="Roughness / Metal / AO" FontSize="12"
+                                   Foreground="{DynamicResource Fore}"/>
+                        <TextBlock Text="T_Clo001_HELM_RMA · 2048² · BC7" FontSize="10.5"
+                                   Classes="faint"
+                                   FontFamily="Consolas,Cascadia Mono,monospace"/>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                  VerticalAlignment="Center">
+                        <Button Classes="tiny" Content="Pick…"/>
+                        <Button Classes="tiny" Content="Import…"/>
+                        <Button Classes="tiny" Content="View"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- ======================================= ITS COLOURS -->
+            <Border Name="CardColours" Classes="card">
+              <StackPanel>
+                <Border Classes="cardhead">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="sechead" Text="ITS COLOURS"/>
+                    <TextBlock Grid.Column="1" Text="3 of 4 offered in the menu" FontSize="10.5"
+                               Classes="faint" VerticalAlignment="Center"/>
+                  </Grid>
+                </Border>
+                <StackPanel Margin="12" Spacing="5">
+                  <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap"
+                             Text="Tick a swatch to offer it in the menu; the game hides the rest. The colour beside each is what this part currently ships with."/>
+
+                  <Border Classes="row" Padding="9,6">
+                    <Grid ColumnDefinitions="Auto,170,Auto,*,Auto">
+                      <CheckBox IsChecked="True" MinWidth="0" Margin="0,0,4,0"/>
+                      <TextBlock Grid.Column="1" Text="Primary" FontSize="12"
+                                 VerticalAlignment="Center" Foreground="{DynamicResource Fore}"/>
+                      <Border Grid.Column="2" Width="17" Height="17" Background="#D8DDE4"
+                              BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                              VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="3" Text="Color 01 · Republic White" FontSize="10.5"
+                                 Classes="faint" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                      <Button Grid.Column="4" Classes="tiny" Content="Change…"/>
+                    </Grid>
+                  </Border>
+
+                  <Border Classes="row" Padding="9,6">
+                    <Grid ColumnDefinitions="Auto,170,Auto,*,Auto">
+                      <CheckBox IsChecked="True" MinWidth="0" Margin="0,0,4,0"/>
+                      <TextBlock Grid.Column="1" Text="Secondary" FontSize="12"
+                                 VerticalAlignment="Center" Foreground="{DynamicResource Fore}"/>
+                      <Border Grid.Column="2" Width="17" Height="17" Background="#C2762C"
+                              BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                              VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="3" Text="Color 02 · 212th Gold" FontSize="10.5"
+                                 Classes="faint" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                      <Button Grid.Column="4" Classes="tiny" Content="Change…"/>
+                    </Grid>
+                  </Border>
+
+                  <Border Classes="row" Padding="9,6">
+                    <Grid ColumnDefinitions="Auto,170,Auto,*,Auto">
+                      <CheckBox IsChecked="True" MinWidth="0" Margin="0,0,4,0"/>
+                      <TextBlock Grid.Column="1" Text="Tertiary" FontSize="12"
+                                 VerticalAlignment="Center" Foreground="{DynamicResource Fore}"/>
+                      <Border Grid.Column="2" Width="17" Height="17" Background="#3A4049"
+                              BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                              VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="3" Text="Color 03 · Gunmetal" FontSize="10.5"
+                                 Classes="faint" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                      <Button Grid.Column="4" Classes="tiny" Content="Change…"/>
+                    </Grid>
+                  </Border>
+
+                  <!-- THE ONE THE MATERIAL SWITCHES OFF. It stays in the list, greyed, with the
+                       reason on it — because "I can only reach three of the tints" is answered
+                       by the template, not by the tool. -->
+                  <Border Classes="row" Padding="9,6" Opacity="0.55">
+                    <Grid ColumnDefinitions="Auto,170,Auto,*,Auto">
+                      <CheckBox IsEnabled="False" MinWidth="0" Margin="0,0,4,0"/>
+                      <TextBlock Grid.Column="1" Text="Visor" FontSize="12"
+                                 VerticalAlignment="Center" Foreground="{DynamicResource Fore}"/>
+                      <Border Grid.Column="2" Width="17" Height="17" Background="#1E2A33"
+                              BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                              VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="3"
+                                 Text="Color 04 · the material switches this one off"
+                                 FontSize="10.5" Classes="faint" Margin="8,0,0,0"
+                                 VerticalAlignment="Center"/>
+                      <Button Grid.Column="4" Classes="tiny" Content="Why?"/>
+                    </Grid>
+                  </Border>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- ======================================= WHO IT IS FOR -->
+            <Border Name="CardOffered" Classes="card">
+              <StackPanel>
+                <Border Classes="cardhead">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="sechead" Text="WHO IT IS FOR"/>
+                    <TextBlock Grid.Column="1" Text="the tags that gate it" FontSize="10.5"
+                               Classes="faint" VerticalAlignment="Center"/>
+                  </Grid>
+                </Border>
+                <StackPanel Margin="12" Spacing="7">
+                  <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap"
+                             Text="A hero's gear carries its owner's name beside its slot tag — taking the name off is what offers it to everyone. Removing a tag greys it out rather than making it vanish, so it can be put back."/>
+                  <WrapPanel>
+                    <Border Classes="chip">
+                      <StackPanel Orientation="Horizontal" Spacing="7">
+                        <TextBlock Text="Customization.Slot.Helmet" FontSize="11"
+                                   FontFamily="Consolas,Cascadia Mono,monospace"
+                                   Foreground="{DynamicResource Fore}"/>
+                        <TextBlock Text="✕" FontSize="10.5" Classes="faint"
+                                   VerticalAlignment="Center"/>
+                      </StackPanel>
+                    </Border>
+                    <Border Classes="chip">
+                      <StackPanel Orientation="Horizontal" Spacing="7">
+                        <TextBlock Text="Customization.Body.Average" FontSize="11"
+                                   FontFamily="Consolas,Cascadia Mono,monospace"
+                                   Foreground="{DynamicResource Fore}"/>
+                        <TextBlock Text="✕" FontSize="10.5" Classes="faint"
+                                   VerticalAlignment="Center"/>
+                      </StackPanel>
+                    </Border>
+                    <Border Classes="chip" Opacity="0.5">
+                      <StackPanel Orientation="Horizontal" Spacing="7">
+                        <TextBlock Text="Hero.Rex" FontSize="11"
+                                   FontFamily="Consolas,Cascadia Mono,monospace"
+                                   TextDecorations="Strikethrough"
+                                   Foreground="{DynamicResource Fore}"/>
+                        <TextBlock Text="put back" FontSize="10"
+                                   Foreground="{DynamicResource Accent}"
+                                   VerticalAlignment="Center"/>
+                      </StackPanel>
+                    </Border>
+                    <Border Classes="chip" BorderBrush="{DynamicResource Accent}">
+                      <TextBlock Text="+  add a tag" FontSize="11"
+                                 Foreground="{DynamicResource Accent}"/>
+                    </Border>
+                  </WrapPanel>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- ======================================= ITS OWN SLOT -->
+            <Border Name="CardSlot" Classes="card">
+              <StackPanel>
+                <Border Classes="cardhead">
+                  <TextBlock Classes="sechead" Text="ITS OWN SLOT"/>
+                </Border>
+                <StackPanel Margin="12" Spacing="4">
+                  <CheckBox IsChecked="True" FontSize="11.5"
+                            Content="Locks its own slot once chosen"/>
+                  <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap"
+                             Text="The game locks named voices and the clone and bespoke appearances — which is why a clone's face cannot be changed. Untick to let the player change their mind."/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- ======================================= ITS NUMBERS -->
+            <Border Name="CardNumbers" Classes="card">
+              <StackPanel>
+                <Border Classes="cardhead">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="sechead" Text="ITS NUMBERS"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7">
+                      <TextBlock Text="11 it carries" FontSize="10.5" Classes="faint"
+                                 VerticalAlignment="Center"/>
+                      <CheckBox FontSize="10.5" MinWidth="0" Content="show every property"/>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+                <StackPanel Margin="12,10" Spacing="0">
+                  <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap" Margin="0,0,0,7"
+                             Text="Anything this part already carries, changed in place. Double-click a value to type over it; a changed one is drawn in the accent colour, exactly as the asset reader does it."/>
+                  <Grid ColumnDefinitions="1.2*,1,*" Height="24">
+                    <TextBlock Text="bIsDefaultUnlocked" FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Fore}"/>
+                    <Border Grid.Column="1" Background="{DynamicResource Line}" Opacity="0.6"/>
+                    <TextBlock Grid.Column="2" Text="true" Classes="num" FontSize="11"
+                               Margin="8,0" VerticalAlignment="Center"/>
+                  </Grid>
+                  <Border Background="{DynamicResource Raised}" Height="24">
+                    <Grid ColumnDefinitions="1.2*,1,*">
+                      <TextBlock Text="UnlockCost" FontSize="11" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource Fore}"/>
+                      <Border Grid.Column="1" Background="{DynamicResource Line}" Opacity="0.6"/>
+                      <TextBox Grid.Column="2" Text="250" FontSize="11" Padding="4,0"
+                               CornerRadius="0" Margin="5,1"
+                               FontFamily="Consolas,Cascadia Mono,monospace"/>
+                    </Grid>
+                  </Border>
+                  <Grid ColumnDefinitions="1.2*,1,*" Height="24">
+                    <TextBlock Text="SortPriority" FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Fore}"/>
+                    <Border Grid.Column="1" Background="{DynamicResource Line}" Opacity="0.6"/>
+                    <TextBlock Grid.Column="2" Text="30" Classes="num" FontSize="11"
+                               Margin="8,0" VerticalAlignment="Center"/>
+                  </Grid>
+                  <Border Background="{DynamicResource Raised}" Height="24">
+                    <Grid ColumnDefinitions="1.2*,1,*">
+                      <TextBlock Text="RigCompatibility" FontSize="11" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource Fore}"/>
+                      <Border Grid.Column="1" Background="{DynamicResource Line}" Opacity="0.6"/>
+                      <TextBlock Grid.Column="2" Text="SK_Clone_Rig  (3 more inside)"
+                                 Classes="num" FontSize="11" Margin="8,0"
+                                 VerticalAlignment="Center"
+                                 Foreground="{DynamicResource Muted}"/>
+                    </Grid>
+                  </Border>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- ======================================= DEEPER CHANGES -->
+            <Border Name="CardDeeper" Classes="card" Margin="0,0,0,20">
+              <StackPanel>
+                <Border Classes="cardhead">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="sechead" Text="DEEPER CHANGES"/>
+                    <TextBlock Grid.Column="1" Text="for when the part has no field for it"
+                               FontSize="10.5" Classes="faint" VerticalAlignment="Center"/>
+                  </Grid>
+                </Border>
+                <StackPanel Margin="12" Spacing="7">
+                  <Border Classes="row">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="1">
+                        <TextBlock Text="Point something at another asset" FontSize="12"
+                                   Foreground="{DynamicResource Fore}"/>
+                        <TextBlock FontSize="10.5" Classes="faint"
+                                   Text="Any reference this part holds — a material, a sound, a rig — aimed somewhere else."/>
+                      </StackPanel>
+                      <Button Grid.Column="1" Classes="tiny" Content="Choose…"
+                              VerticalAlignment="Center"/>
+                    </Grid>
+                  </Border>
+                  <Border Classes="row">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="1">
+                        <TextBlock Text="Add a property it does not have" FontSize="12"
+                                   Foreground="{DynamicResource Fore}"/>
+                        <TextBlock FontSize="10.5" Classes="faint"
+                                   Text="From the mappings, so only properties this type really has are offered."/>
+                      </StackPanel>
+                      <Button Grid.Column="1" Classes="tiny" Content="Add…"
+                              VerticalAlignment="Center"/>
+                    </Grid>
+                  </Border>
+                  <Border Classes="row">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="1">
+                        <TextBlock Text="Hide it from the menu" FontSize="12"
+                                   Foreground="{DynamicResource Fore}"/>
+                        <TextBlock FontSize="10.5" Classes="faint"
+                                   Text="Leaves the part in the game but takes it out of the list players choose from."/>
+                      </StackPanel>
+                      <CheckBox Grid.Column="1" FontSize="11.5" VerticalAlignment="Center"/>
+                    </Grid>
+                  </Border>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- WHAT IT IS NOW. The read sheet does not disappear while editing — it moves here,
+             narrow and quiet, so a field can be checked against what the part actually says
+             without leaving the editor. The header button folds it away. -->
+        <Border Grid.Column="3" Name="SheetCol" Width="330"
+                Background="{DynamicResource Chrome}"
+                BorderBrush="{DynamicResource Line}" BorderThickness="1,0,0,0">
+          <DockPanel>
+            <Border DockPanel.Dock="Top" Classes="cardhead" Padding="11,7">
+              <TextBlock Classes="sechead" Text="WHAT IT IS NOW"/>
+            </Border>
+            <ScrollViewer>
+              <StackPanel Margin="11,9" Spacing="7">
+                <TextBlock FontSize="10.5" Classes="faint" TextWrapping="Wrap"
+                           Text="The part as the game has it, before anything above is saved."/>
+                <Border Background="{DynamicResource Panel}" Padding="7,4">
+                  <TextBlock Text="WHAT IT IS" FontSize="9.5" LetterSpacing="1"
+                             Classes="faint"/>
+                </Border>
+                <Grid ColumnDefinitions="110,*">
+                  <TextBlock Text="Slot" FontSize="11" Classes="faint"/>
+                  <TextBlock Grid.Column="1" Text="Helmet" FontSize="11"
+                             Foreground="{DynamicResource Fore}"/>
+                </Grid>
+                <Grid ColumnDefinitions="110,*">
+                  <TextBlock Text="Body types" FontSize="11" Classes="faint"/>
+                  <TextBlock Grid.Column="1" Text="Feminine, Masculine" FontSize="11"
+                             Foreground="{DynamicResource Fore}"/>
+                </Grid>
+                <Grid ColumnDefinitions="110,*">
+                  <TextBlock Text="Template" FontSize="11" Classes="faint"/>
+                  <TextBlock Grid.Column="1" Text="CT_Helmet_Clone_01" FontSize="11"
+                             TextWrapping="Wrap" Foreground="{DynamicResource Fore}"/>
+                </Grid>
+                <Border Background="{DynamicResource Panel}" Padding="7,4">
+                  <TextBlock Text="HIDES FROM THE MENU" FontSize="9.5" LetterSpacing="1"
+                             Classes="faint"/>
+                </Border>
+                <TextBlock FontSize="11" Classes="dim" TextWrapping="Wrap"
+                           Text="Color 04 — the visor, switched off by the material"/>
+                <Border Background="{DynamicResource Panel}" Padding="7,4">
+                  <TextBlock Text="WHAT WEARS IT" FontSize="9.5" LetterSpacing="1"
+                             Classes="faint"/>
+                </Border>
+                <TextBlock FontSize="11" Classes="dim" TextWrapping="Wrap"
+                           Text="Offered to every Average body in the Republic roster — 41 characters can wear this."/>
+              </StackPanel>
+            </ScrollViewer>
+          </DockPanel>
+        </Border>
+
+      </Grid>
+    </DockPanel>
+  </DockPanel>
+</Window>

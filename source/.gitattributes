@@ -1,0 +1,5 @@
+# Staged as source/.gitattributes by tools/snapshot.ps1.
+* text=auto
+
+# Patches must keep LF or `git apply` fails on the context lines
+*.patch text eol=lf

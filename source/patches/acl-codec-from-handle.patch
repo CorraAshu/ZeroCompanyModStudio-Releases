@@ -1,0 +1,29 @@
+diff --git a/CUE4Parse/UE4/Assets/Exports/Animation/UAnimSequence.cs b/CUE4Parse/UE4/Assets/Exports/Animation/UAnimSequence.cs
+index 291a9259..aa05d23a 100644
+--- a/CUE4Parse/UE4/Assets/Exports/Animation/UAnimSequence.cs
++++ b/CUE4Parse/UE4/Assets/Exports/Animation/UAnimSequence.cs
+@@ -316,6 +316,24 @@ private void SerializeCompressedData3(FAssetArchive Ar)
+             CompressedCurveByteStream = Ar.ReadBytes(numCurveBytes);
+ 
+             var boneCompressionCodec = BoneCompressionSettings?.Load<UAnimBoneCompressionSettings>()?.GetCodec(BoneCodecDDCHandle);
++
++            // The settings asset is not always there to be asked. One game cooks its
++            // AnimSequences with only NumFrames and TrackToSkeletonMapTable as properties -- no
++            // BoneCompressionSettings at all -- so the lookup above returns null for all 2,804 of
++            // them and every one failed later with a NULL CompressedDataStructure, reported as
++            // "Unsupported compressed data type " with nothing after the space.
++            //
++            // But the handle still names the codec: "AnimBoneCompressionCodec_ACL_0". Trusting it
++            // is what the pre-4.22 path already does a hundred lines up, where a KeyEncodingFormat
++            // beginning "ACL" allocates an ACLSafe codec directly rather than resolving an asset.
++            // Same reasoning, same fallback, applied where the handle is the only evidence left.
++            if (boneCompressionCodec == null && BoneCodecDDCHandle.Contains("ACL", StringComparison.OrdinalIgnoreCase))
++            {
++                boneCompressionCodec = new UAnimBoneCompressionCodec_ACLSafe();
++                Log.Information("No bone compression settings on {0}; using ACL from the codec handle {1}",
++                    Name, BoneCodecDDCHandle);
++            }
++
+             if (boneCompressionCodec != null)
+             {
+                 CompressedDataStructure = boneCompressionCodec.AllocateAnimData();

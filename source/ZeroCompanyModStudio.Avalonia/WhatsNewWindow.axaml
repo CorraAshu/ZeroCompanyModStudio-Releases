@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ZeroCompanyModStudioAvalonia.WhatsNewWindow"
+        Title="What's new"
+        Width="560" Height="460" MinWidth="420" MinHeight="300"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Ground}">
+
+  <!--
+    WHAT CHANGED, in the release's own words.
+
+    The notes come down in the same response the version number does, so this costs one field and
+    answers the only question the notice ever raised. "A newer version is available" is a fact
+    about a number; whether to spend five minutes on it depends entirely on what is in it. (Four
+    releases went out in one day and a user was still on 1.0, hand-editing a settings file around
+    something fixed in 1.1 - the notice had said only that a number had gone up.)
+
+    Read-only. The notes are GitHub markdown reduced to prose by UpdateCheck.Readable - headings,
+    bold, links and rules - and the one button that does anything opens the download page, which
+    is where the notice always used to go. Nothing is downloaded or installed from here.
+  -->
+  <Grid RowDefinitions="Auto,*,Auto" Margin="18,16,18,16">
+
+    <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,10">
+      <TextBlock Name="HeadText" FontSize="12" Foreground="{DynamicResource Muted}" TextWrapping="Wrap"/>
+      <Border Height="1" Background="{DynamicResource Line}"/>
+    </StackPanel>
+
+    <Border Grid.Row="1" Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}"
+            BorderThickness="1">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <SelectableTextBlock Name="NotesText" FontSize="12.5" TextWrapping="Wrap" Margin="12,10"
+                             Foreground="{DynamicResource Fore}"/>
+      </ScrollViewer>
+    </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" Margin="0,12,0,0">
+      <Button Grid.Column="0" Content="Open the download page" Click="OnOpenPage"
+              Padding="16,6" FontSize="12" Background="{DynamicResource Accent}" Foreground="#1A1408"/>
+      <TextBlock Grid.Column="1" Text="Nothing is downloaded or installed for you." FontSize="11.5"
+                 Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="12,0"
+                 TextWrapping="Wrap"/>
+      <Button Grid.Column="2" Content="Close" Click="OnClose" Padding="20,6" FontSize="12"
+              IsCancel="True"/>
+    </Grid>
+  </Grid>
+</Window>
