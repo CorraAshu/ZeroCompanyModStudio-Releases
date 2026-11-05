@@ -776,6 +776,52 @@ public sealed class TextureCache(GL gl) : IDisposable
 #endif
 
     /// <summary>
+    /// Put the author's own images over what the material resolved, for one section. GL work: render thread.
+    ///
+    /// The keys are the project's, and they are matched the way the BUILD matches them, by what
+    /// the image is FOR rather than by an exact spelling -- a diffuse is "D", "BaseColor" or
+    /// "Diffuse" depending on who typed it. Anything unrecognised is left alone rather than
+    /// guessed at: binding an author's mask as their albedo would look like a bug in their art.
+    ///
+    /// A file that will not load leaves the material's own map in place, which is the right
+    /// failure -- the mesh keeps looking like something.
+    /// </summary>
+    public void PaintOwn(RenderSection section, IReadOnlyDictionary<string, string> mine)
+    {
+        foreach (var (key, file) in mine)
+        {
+            if (string.IsNullOrWhiteSpace(file) || !File.Exists(file)) continue;
+
+            var k = key.Trim().TrimStart('_');
+            var (handle, _, _) = UploadFile(file);
+            if (handle == 0) continue;
+
+            if (k.Equals("D", StringComparison.OrdinalIgnoreCase) ||
+                k.Contains("Diffuse", StringComparison.OrdinalIgnoreCase) ||
+                k.Contains("BaseColor", StringComparison.OrdinalIgnoreCase) ||
+                k.Contains("Albedo", StringComparison.OrdinalIgnoreCase))
+            {
+                section.Diffuse = handle;
+                section.DiffusePath = file;
+            }
+            else if (k.Equals("N", StringComparison.OrdinalIgnoreCase) ||
+                     k.Contains("Normal", StringComparison.OrdinalIgnoreCase))
+                section.NormalMap = handle;
+            // THE TINT MASK BEFORE THE OTHER MASKS, because "TintMask" contains "Mask". The author's own mask is the
+            // one the build points the part at; leaving the material's in place painted its colours through a layout
+            // made for the game's UVs, which on an import is dark patches in random places.
+            else if (k.Contains("Tint", StringComparison.OrdinalIgnoreCase))
+                section.TintMask = handle;
+            else if (k.Equals("MSK", StringComparison.OrdinalIgnoreCase) ||
+                     k.Equals("ORME", StringComparison.OrdinalIgnoreCase) ||
+                     k.Contains("Mask", StringComparison.OrdinalIgnoreCase) ||
+                     k.Contains("RMA", StringComparison.OrdinalIgnoreCase) ||
+                     k.Contains("Specular", StringComparison.OrdinalIgnoreCase))
+                section.Orme = handle;
+        }
+    }
+
+    /// <summary>
     /// A PNG or TGA on disk -- the author's own artwork, for a thumbnail beside the field that
     /// names it. Decoded by ImageSharp, which is what the build encodes it with, so what the
     /// Studio shows is what the game will get. Keyed apart from game textures so a file and an

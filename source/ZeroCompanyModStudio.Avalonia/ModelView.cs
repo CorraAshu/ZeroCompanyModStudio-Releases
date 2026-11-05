@@ -5,6 +5,7 @@ using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Animation;
+using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.StaticMesh;
 using Silk.NET.OpenGL;
@@ -528,9 +529,18 @@ public sealed unsafe class ModelView : OpenGlControlBase
     ///
     /// RenderMesh.FromFbx already existed in the linked renderer; this is a call, not a reader.
     /// </summary>
-    public void ShowFbx(string path, string? mappingMeshPath, Skeleton? rig)
+    /// <summary>
+    /// Draw an imported FBX. <paramref name="mapping"/> is the project's axis mapping for it ("XZY", "-X-ZY"; null =
+    /// the default) and <paramref name="scale"/> its centimetres per file unit (0 = the file's own node), the same
+    /// two the build reads, so the preview shows the import the build will make.
+    /// </summary>
+    public void ShowFbx(string path, string? mapping, Skeleton? rig, float scale = 0f,
+                        IReadOnlyList<UMaterialInterface?>? materials = null,
+                        IReadOnlyList<IReadOnlyDictionary<string, string>?>? ownTextures = null)
     {
-        _pendingFbx = (path, mappingMeshPath, rig);
+        _pendingFbx = (path, mapping, rig, scale);
+        _fbxMaterials = materials;
+        _fbxOwnTextures = ownTextures;
         _pending = null;
         _asset = null;
         _wantLod = -1;
@@ -539,7 +549,13 @@ public sealed unsafe class ModelView : OpenGlControlBase
         RequestNextFrameRendering();
     }
 
-    private (string Path, string? Mapping, Skeleton? Rig)? _pendingFbx;
+    private (string Path, string? Mapping, Skeleton? Rig, float Scale)? _pendingFbx;
+
+    /// <summary>Per section of the imported file: the material it wears (the game mesh's, or the slot the project
+    /// names) and the author's own images over it -- what the old Studio's preview did, so an import is seen painted
+    /// and not grey. Kept for a Refresh, which rebuilds the same file.</summary>
+    private IReadOnlyList<UMaterialInterface?>? _fbxMaterials;
+    private IReadOnlyList<IReadOnlyDictionary<string, string>?>? _fbxOwnTextures;
 
     /// <summary>
     /// Rebuild what is on screen from whatever it was last given.
@@ -1663,7 +1679,7 @@ public sealed unsafe class ModelView : OpenGlControlBase
             SectionCount = TexturedSections = 0;
             Fault = null;
 
-            _mesh = RenderMesh.FromFbx(_gl, want.Path, want.Mapping, 0f, want.Rig, out var fbxWhy);
+            _mesh = RenderMesh.FromFbx(_gl, want.Path, want.Mapping, want.Scale, want.Rig, out var fbxWhy);
             if (_mesh is null)
             {
                 Fault = fbxWhy ?? "that file holds no geometry this renderer can read";
@@ -1672,10 +1688,18 @@ public sealed unsafe class ModelView : OpenGlControlBase
                 return;
             }
 
-            foreach (var section in _mesh.Sections)
+            for (var i = 0; i < _mesh.Sections.Count; i++)
             {
+                var section = _mesh.Sections[i];
+                if (_fbxMaterials is { } mats && i < mats.Count && mats[i] is { } mat) section.Material = mat;
                 try { _textures?.BindMaterial(section); }
                 catch (Exception e) { Fault ??= e.Message; }
+
+                // AFTER the material, because these replace what it resolved rather than adding to it.
+                if (_fbxOwnTextures is { } own && i < own.Count && own[i] is { Count: > 0 } mine)
+                    try { _textures?.PaintOwn(section, mine); }
+                    catch (Exception e) { Fault ??= e.Message; }
+
                 SectionCount++;
                 if (section.Diffuse != 0) TexturedSections++;
             }

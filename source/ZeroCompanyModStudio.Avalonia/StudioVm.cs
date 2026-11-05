@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Animation;
+using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse_Conversion.Meshes;
 using UEToolkit.App.Rendering;
@@ -2920,18 +2921,22 @@ public sealed partial class StudioVm : Obs
     {
         if (_provider is null) { Say("the game is not open yet"); return; }
 
-        var path = ContainerPathOf(row.Package);
+        // YOUR IMPORT WHEN THE ROW HAS ONE, as the mesh row's View does. This used to open the game's texture for the
+        // slot whatever the mod had put over it, so an import could not be checked here at all.
+        var file = row.Replacement.Length > 0 ? ModBuild.FindImage(row.Replacement, _modPath) : null;
+        var path = file is not null && File.Exists(file) ? file : ContainerPathOf(row.Package);
 
         // ALREADY OPEN? Forward and refresh, rather than stacking tabs on one texture.
         if (Tabs.OfType<TextureTab>().FirstOrDefault(t => t.FilePath == path) is { } open)
         { Tab = open; return; }
 
-        var tex = new TextureTab(row.GameLeaf, path, "Texture2D");
+        var tex = new TextureTab(path == file ? $"{row.GameLeaf}  (your import)" : row.GameLeaf, path, "Texture2D");
         tex.View.Trace = Say;
         Tabs.Add(tex);
         Tab = tex;
         Raise(nameof(AnyTabs));
-        await tex.LoadAsync(_provider);
+        if (path == file) tex.LoadFile(file);
+        else await tex.LoadAsync(_provider);
     }
 
     /// <summary>
@@ -3342,12 +3347,15 @@ public sealed partial class StudioVm : Obs
         var gamePkg = row.GamePath;
         var file = row.Replacement.Length > 0 ? ModBuild.FindImage(row.Replacement, _modPath) : null;
 
-        // ALREADY OPEN? Bring it forward and refresh it rather than stacking tabs on one mesh.
-        var open = Tabs.OfType<MeshTab>().FirstOrDefault(t => t.MeshKey == gamePkg);
+        // ALREADY OPEN? Bring it forward and refresh it rather than stacking tabs on one mesh. KEYED BY THE IMPORT TOO:
+        // several parts of one mod are often built over the same game mesh (three helmets over one clone helmet), and a
+        // key of the game mesh alone brought the first part's tab back for the second and third.
+        var key = file is null ? gamePkg : gamePkg + "|" + file;
+        var open = Tabs.OfType<MeshTab>().FirstOrDefault(t => t.MeshKey == key);
         if (open is not null) { Tab = open; open.View.Refresh(); return; }
 
-        var title = row.GameLeaf + (file is null ? "" : "  (your import)");
-        var tab = new MeshTab(title, ContainerPathOf(gamePkg), "SkeletalMesh") { MeshKey = gamePkg };
+        var title = file is null ? row.GameLeaf : $"{System.IO.Path.GetFileNameWithoutExtension(file)}  (your import)";
+        var tab = new MeshTab(title, ContainerPathOf(gamePkg), "SkeletalMesh") { MeshKey = key };
         tab.PropsFilled = ApplyModEdits;
         tab.View.Trace = Say;
         if (Swatches.Count > 0) tab.SetSwatches(Swatches);
@@ -3358,23 +3366,73 @@ public sealed partial class StudioVm : Obs
 
         if (file is null || !File.Exists(file)) { await tab.LoadAsync(provider); return; }
 
-        var rig = await Task.Run<Skeleton?>(() =>
+        var own = MeshAuthoringOf(row.Replacement);
+        var modPath = _modPath;
+
+        // THE RIG, AND WHAT EACH SECTION WEARS: the material the project names for that slot, else the game mesh's own,
+        // with the author's images over it -- as the old Studio's preview did, so an import is seen painted, not grey.
+        var (rig, materials, mine) = await Task.Run(() =>
         {
+            Skeleton? skeleton = null;
+            var mats = new List<UMaterialInterface?>();
+            var images = new List<IReadOnlyDictionary<string, string>?>();
             try
             {
-                return AssetLoader.Load<USkeletalMesh>(provider, ContainerPathOf(gamePkg))
-                       is { } sk && sk.TryConvert(out var converted) && converted.RefSkeleton.Count > 0
-                    ? new Skeleton(converted.RefSkeleton)
-                    : null;
+                var sk = AssetLoader.Load<USkeletalMesh>(provider, ContainerPathOf(gamePkg));
+                if (sk is not null && sk.TryConvert(out var converted) && converted.RefSkeleton.Count > 0)
+                    skeleton = new Skeleton(converted.RefSkeleton);
+
+                var gameSlots = sk?.SkeletalMaterials ?? [];
+                var slots = own?.Materials ?? [];
+                for (var i = 0; i < Math.Max(slots.Count, gameSlots.Length); i++)
+                {
+                    UMaterialInterface? mat = null;
+                    if (i < slots.Count && slots[i].Material is { Length: > 0 } named)
+                        mat = AssetLoader.LoadPrimary(provider, named.Contains('.') ? named[..named.IndexOf('.')] : named)
+                              as UMaterialInterface;
+                    if (mat is null && i < gameSlots.Length) mat = gameSlots[i].Material?.Load<UMaterialInterface>();
+                    mats.Add(mat);
+
+                    var paint = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    if (i < slots.Count)
+                        foreach (var (key, image) in slots[i].Textures)
+                            // A game texture's object path is not a file of the author's: the material already has it.
+                            if (image is { Length: > 0 } && !image.Contains('/') &&
+                                ModBuild.FindImage(image, modPath) is { } found && File.Exists(found))
+                                paint[key] = found;
+                    images.Add(paint.Count > 0 ? paint : null);
+                }
             }
-            catch (Exception) { return null; }
+            catch (Exception) { }
+            return (skeleton, mats, images);
         });
 
         // NAMED WHEN THERE IS NO RIG, because the file then draws at rest and looks like an
         // import whose weights were dropped — which is a different fault entirely.
         if (rig is null) Say($"{row.GameLeaf}: could not read the game rig, so it draws at rest");
-        tab.View.ShowFbx(file, gamePkg, rig);
-        Say($"showing {System.IO.Path.GetFileName(file)} on {row.GameLeaf}'s rig");
+
+        // THE PROJECT'S OWN AXES AND SCALE FOR THIS FILE, the two the build reads. This used to pass the game mesh's
+        // package as the axis mapping, which the reader rightly refuses ("is not an axis mapping"), so View drew nothing.
+        var mapping = own?.MeshBasis is { Length: > 0 } basis ? basis : null;
+        tab.View.ShowFbx(file, mapping, rig, own?.MeshScale ?? 0f, materials, mine);
+        Say($"showing {System.IO.Path.GetFileName(file)} on {row.GameLeaf}'s rig" +
+            (mine.Any(m => m is not null) ? $", with your images ({mine.Sum(m => m?.Count ?? 0)})" : ""));
+    }
+
+    /// <summary>The entry in this mod that carries an imported mesh file: a part, one of its pieces, a mesh copy or an
+    /// override. Null when nothing does.</summary>
+    private IMeshAuthoring? MeshAuthoringOf(string meshFile)
+    {
+        if (_mod is null || meshFile.Length == 0) return null;
+        bool Carries(IMeshAuthoring a) => a.MeshFile.Equals(meshFile, StringComparison.OrdinalIgnoreCase);
+        foreach (var part in _mod.Parts)
+        {
+            if (Carries(part)) return part;
+            if (part.Regions.FirstOrDefault(Carries) is { } piece) return piece;
+        }
+        if (_mod.Meshes.FirstOrDefault(Carries) is { } mesh) return mesh;
+        return _mod.Overrides.FirstOrDefault(o => o.MeshFile.Equals(meshFile, StringComparison.OrdinalIgnoreCase))
+               is { } ov ? new OverrideMesh(ov) : null;
     }
 
     /// <summary>A package name back to the file path the containers key by.</summary>
@@ -3936,6 +3994,7 @@ public sealed partial class StudioVm : Obs
     /// </summary>
     public void ExportTexture(TextureTab tab, string directory)
     {
+        if (File.Exists(tab.FilePath)) { Say($"this tab shows your own file, which is already on disk: {tab.FilePath}"); return; }
         if (tab.Texture is null) { Say("that texture has not finished loading"); return; }
 
         var package = PropertyEdit.PackageForFile(tab.FilePath) ?? tab.Title;
@@ -3969,6 +4028,8 @@ public sealed partial class StudioVm : Obs
     {
         if (_mod is null) { Say("open a mod first — an import has to belong to one"); return; }
         if (_provider is null) { Say("the game is not open yet"); return; }
+        if (File.Exists(tab.FilePath))
+        { Say("this tab shows your own file; to replace it, use Import on the part's texture row"); return; }
 
         var package = PropertyEdit.PackageForFile(tab.FilePath);
         if (package is null) { Say($"could not work out the package name for {tab.Title}"); return; }

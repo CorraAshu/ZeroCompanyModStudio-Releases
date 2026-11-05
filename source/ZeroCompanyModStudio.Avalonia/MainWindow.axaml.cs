@@ -1261,6 +1261,33 @@ public partial class MainWindow : Window
             // which is every part in a project the old studio made. The route it exercises is
             // the one that did not exist: until now the panel could only be reached through
             // Duplicate, so an existing copy had nothing to open into.
+            // --viewmeshall [<folder>]: open every part of the mod that carries an imported mesh and press View on it, one
+            // after another in one session the way the author does, then name the mesh tabs that are open; with a
+            // folder, each view is photographed as <n>.png. Parts built over one game mesh must each get their own tab.
+            var vall = Array.IndexOf(args, "--viewmeshall");
+            if (vall >= 0)
+            {
+                var shots = vall + 1 < args.Length && !args[vall + 1].StartsWith("--") ? args[vall + 1] : null;
+                var n = 0;
+                foreach (var part in _vm.CopiesInMod.Where(p => p.MeshFile.Length > 0).ToList())
+                {
+                    await _vm.EditCopy(part);
+                    if (_vm.Tab is not PartTab vpt) continue;
+                    for (var spin = 0; spin < 40 && vpt.MeshRows.Count == 0; spin++) await Task.Delay(250);
+                    if (vpt.MeshRows.FirstOrDefault(r => r.Replacement.Length > 0) is not { } vrow) continue;
+                    await _vm.ViewMeshRowAsync(vrow);
+                    await Task.Delay(3000);
+                    n++;
+                    if (shots is not null && _vm.Tab is MeshTab vmt)
+                    {
+                        vmt.View.ShotTo(System.IO.Path.Combine(shots, $"{n}.png"));
+                        await Task.Delay(1500);
+                    }
+                }
+                _vm.Say($"[viewall] {n} viewed; mesh tabs open: " +
+                        string.Join(" | ", _vm.Tabs.OfType<MeshTab>().Select(t => t.Title)));
+            }
+
             var ec = Array.IndexOf(args, "--editcopy");
             if (ec >= 0 && ec + 1 < args.Length)
             {
@@ -2825,6 +2852,25 @@ public partial class MainWindow : Window
             {
                 var rn = Array.IndexOf(args, "--rename");
                 if (rn >= 0 && rn + 1 < args.Length) pt.EditName = args[rn + 1];
+
+                // --viewmeshrow: press View on the first mesh row carrying the mod's own import, the way the author
+                // checks an import arrived as meant. What the viewport makes of it is in the log.
+                if (args.Contains("--viewmeshrow"))
+                {
+                    for (var spin = 0; spin < 40 && pt.MeshRows.Count == 0; spin++) await Task.Delay(250);
+                    if (pt.MeshRows.FirstOrDefault(r => r.Replacement.Length > 0) is { } viewRow)
+                        await _vm.ViewMeshRowAsync(viewRow);
+                    else _vm.Say($"--viewmeshrow: none of {pt.MeshRows.Count} mesh row(s) carries an import");
+                }
+
+                // --viewtexrow: the same for the first texture row carrying an import.
+                if (args.Contains("--viewtexrow"))
+                {
+                    for (var spin = 0; spin < 40 && pt.TextureRows.Count == 0; spin++) await Task.Delay(250);
+                    if (pt.TextureRows.FirstOrDefault(r => r.Replacement.Length > 0) is { } texRow)
+                        await _vm.ViewTextureRowAsync(texRow);
+                    else _vm.Say($"--viewtexrow: none of {pt.TextureRows.Count} texture row(s) carries an import");
+                }
 
                 // --mesh / --icon go through ImportArt, the same call Browse makes,
                 // so the COPY is exercised and not just the field assignment.

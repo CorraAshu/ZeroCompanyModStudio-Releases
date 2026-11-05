@@ -67,11 +67,25 @@ public sealed unsafe class TextureView : OpenGlControlBase
     public void Show(UTexture texture)
     {
         _pending = texture;
+        _pendingFile = null;
         Fault = null;
         Zoom = 0f;
         Pan = Vector2.Zero;
         RequestNextFrameRendering();
     }
+
+    /// <summary>A PNG or TGA on disk -- the author's own import -- read the way the build reads it.</summary>
+    public void ShowFile(string path)
+    {
+        _pendingFile = path;
+        _pending = null;
+        Fault = null;
+        Zoom = 0f;
+        Pan = Vector2.Zero;
+        RequestNextFrameRendering();
+    }
+
+    private string? _pendingFile;
 
     /// <summary>Back to fitting the window, which is also what a newly opened texture does.</summary>
     public void Fit()
@@ -247,6 +261,25 @@ public sealed unsafe class TextureView : OpenGlControlBase
     /// </summary>
     private void Upload()
     {
+        if (_pendingFile is { } file && _gl is not null && _textures is not null)
+        {
+            _pendingFile = null;
+            _handle = 0;
+            ImageWidth = ImageHeight = 0;
+            try
+            {
+                (_handle, ImageWidth, ImageHeight) = _textures.UploadFile(file);
+                if (_handle == 0)
+                    Fault = _textures.Failures.LastOrDefault() ?? $"{System.IO.Path.GetFileName(file)} could not be read";
+            }
+            catch (Exception e) { Fault = e.Message; }
+
+            Console.WriteLine($"[texture] {System.IO.Path.GetFileName(file)} (file): handle={_handle} " +
+                              $"{ImageWidth}x{ImageHeight} fault={Fault ?? "none"}");
+            Loaded?.Invoke();
+            return;
+        }
+
         if (_pending is null || _gl is null || _textures is null) return;
 
         var texture = _pending;

@@ -139,6 +139,15 @@ public sealed class TextureTab : StudioTab
     public void Fit() => View.Fit();
     public void Actual() => View.Actual();
 
+    /// <summary>Show the author's own image file instead of the game's texture. There is no game asset behind it, so
+    /// <see cref="Texture"/> stays null.</summary>
+    public void LoadFile(string file)
+    {
+        Format = "your import (" + System.IO.Path.GetExtension(file).TrimStart('.').ToUpperInvariant() + ")";
+        Status = "reading the file…";
+        View.ShowFile(file);
+    }
+
     /// <summary>
     /// Read the asset OFF THE UI THREAD, then hand the texture to the viewer.
     ///
