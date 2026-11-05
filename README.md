@@ -25,10 +25,14 @@ and run `ZeroCompanyModStudio.exe`
 | **Replacements** | Change the game's own asset instead of adding beside it. Your model becomes the helmet everybody already wears &mdash; no new menu entry, no duplicate to find. |
 | **Abilities** | Change what an ability does. All 826 of them, with every number behind each one, and a warning on any that the game works out somewhere else. |
 | **Every other number** | 852 data tables, browsable: what an action costs in action points, what a mission pays, how long an effect runs. Rows and numbers, with the game's own value beside yours. |
+| **Maps** | The Level Editor ships beside the Studio: move, replace and add pieces of the game's own maps. It also exports whatever it has loaded to one FBX, with the textures, for Blender or 3ds Max. |
 
 Everything is made by copying something the game already has, so a part you make behaves like a
 part the game shipped. **The game's own files are never written to.** A mod is a folder in
-`SWZeroCompany\Mods`; deleting it removes the mod completely, replacements included.
+`SWZeroCompany\Mods`, replacements included, and **Project &rarr; Take it back out of the game** removes it
+completely. A mod for the Outfit wheel also keeps a few files in `~mods`, because the game loads that wheel
+before it reads `Mods`; that menu entry removes those too, where deleting the `Mods` folder by hand would
+leave them behind.
 
 ## Getting started
 
@@ -54,7 +58,7 @@ mod that is already known to be broken should not get as far as your game folder
 
 - Windows 64-bit
 - Star Wars: Zero Company, installed
-- About 170 MB of disk once unzipped
+- About 140 MB of disk once unzipped
 - An internet connection the first time it decompresses game data, which fetches two components
   that cannot be redistributed
 
