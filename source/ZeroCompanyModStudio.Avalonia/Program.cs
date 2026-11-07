@@ -43,7 +43,7 @@ internal static class Program
         UEToolkit.Core.Branding.Product = "Zero Company Mod Studio";
         // The release version, and it has to match the csproj's <Version> and <InformationalVersion>:
         // publish.ps1 reads this line and those two elements and refuses to build if they differ.
-        UEToolkit.Core.Branding.Version = "2.0.0";
+        UEToolkit.Core.Branding.Version = "2.0.1";
         UEToolkit.Core.Branding.AuthorFirst = true;
         UEToolkit.Core.Branding.ModsFolder = "Zero Company Mods";
 

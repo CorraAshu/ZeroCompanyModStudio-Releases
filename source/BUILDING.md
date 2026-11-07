@@ -1,7 +1,7 @@
 # Building from source
 
 This folder is the source of **Zero Company Mod Studio** and **Zero Company Level Editor**, version
-**2.0.0**, as it stood when that release was built. It is a snapshot per release, not a working
+**2.0.1**, as it stood when that release was built. It is a snapshot per release, not a working
 repository: the next release replaces it, and nothing here is updated in between.
 
 These are the steps this source is checked with before a snapshot is published: they are run, as written,

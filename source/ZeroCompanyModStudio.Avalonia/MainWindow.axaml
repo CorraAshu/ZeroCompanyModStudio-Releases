@@ -2192,8 +2192,12 @@
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal"
                                                         Spacing="4" VerticalAlignment="Center">
+                                              <!-- A PART'S ONLY: Pick moves the part's reference to another
+                                                   game mesh, and nothing else has one to move. On a mesh
+                                                   override, a mesh copy or a weapon it did nothing. -->
                                               <Button Classes="tiny" Content="Pick…"
-                                                      Click="OnPickMeshRow"/>
+                                                      Click="OnPickMeshRow"
+                                                      IsVisible="{Binding $parent[ItemsControl].((local:SheetTab)DataContext).CanPickMesh}"/>
                                               <Button Classes="tiny" Content="Import…"
                                                       Click="OnImportMeshRow"/>
                                               <Button Classes="tiny" Content="View"

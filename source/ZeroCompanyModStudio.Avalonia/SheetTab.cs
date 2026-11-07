@@ -225,6 +225,10 @@ public abstract class SheetTab : StudioTab
     /// <summary>Whether this tab is editing a COPY this mod ships rather than the game's own.</summary>
     public virtual bool IsCopy => false;
 
+    /// <summary>Whether a mesh row's Pick does anything here: it moves a PART's reference to another game mesh, and only
+    /// a part has one to move (OnPickMeshRow). Elsewhere the button was shown and did nothing.</summary>
+    public bool CanPickMesh => this is PartTab;
+
     /// <summary>
     /// The badge beside the title, and the sentence under it.
     ///

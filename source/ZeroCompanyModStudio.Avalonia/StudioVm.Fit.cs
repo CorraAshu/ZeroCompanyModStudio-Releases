@@ -26,6 +26,26 @@ namespace ZeroCompanyModStudioAvalonia;
 public sealed partial class StudioVm
 {
     /// <summary>
+    /// A FRESHLY IMPORTED FILE'S AXES, where the entry names none and the file declares a system whose mapping has been
+    /// measured (<see cref="MeshImport.DeclaredBasis"/>) -- today the Z-up one the Studio's own FBX export writes, which
+    /// the default read as lying face down.
+    ///
+    /// WRITTEN INTO THE PROJECT, so the build, the View and the fit card read one answer and the author can see and
+    /// change it on the fit card. Only when the basis is blank: one the author typed is theirs. A file that declares
+    /// anything else keeps the default exactly as before, and so does every project already built.
+    /// </summary>
+    private void TakeDeclaredBasis(IMeshAuthoring onto, string file)
+    {
+        if (onto.MeshBasis.Length > 0 || file.Length == 0) return;
+        var path = PathOfMyImage(file) ?? file;
+        if (!File.Exists(path) || MeshImport.DeclaredBasis(path) is not { } basis) return;
+
+        onto.MeshBasis = basis;
+        Say($"{System.IO.Path.GetFileName(path)}: the file says it is Z-up, so its axes are set to {basis} — " +
+            "change them on the fit card if it stands wrong");
+    }
+
+    /// <summary>
     /// What this tab's fit fields live on, or null when it has none.
     ///
     /// ASKED OF THE TAB, exactly as <see cref="PaintTarget"/> is, and for the same reason: the
@@ -37,6 +57,10 @@ public sealed partial class StudioVm
         {
             case ReplacementTab own:
                 return own.Mesh;
+
+            // A GAME MESH THIS MOD REWRITES: the override's own five fields, through Core's adapter.
+            case OverrideTab rewrite when _mod is not null:
+                return OverrideOf(rewrite) is { } ovOwn ? new OverrideMesh(ovOwn) : null;
 
             // A GARMENT OF PIECES FITS PER PIECE. The import lands on a ModRegion, so the part's
             // own five fields describe a file it does not carry — the card was simply absent, and

@@ -39,6 +39,9 @@ public sealed unsafe class TextureView : OpenGlControlBase
     public string? Fault { get; private set; }
 
     public int ImageWidth { get; private set; }
+
+    /// <summary>Whether an uploaded image is on the GPU right now -- false between a teardown and the re-upload.</summary>
+    public bool HasImage => _handle != 0;
     public int ImageHeight { get; private set; }
 
     /// <summary>Raised once the texture is up, so the tab can report what it got.</summary>
@@ -66,8 +69,8 @@ public sealed unsafe class TextureView : OpenGlControlBase
 
     public void Show(UTexture texture)
     {
-        _pending = texture;
-        _pendingFile = null;
+        _pending = _shown = texture;
+        _pendingFile = _shownFile = null;
         Fault = null;
         Zoom = 0f;
         Pan = Vector2.Zero;
@@ -77,8 +80,8 @@ public sealed unsafe class TextureView : OpenGlControlBase
     /// <summary>A PNG or TGA on disk -- the author's own import -- read the way the build reads it.</summary>
     public void ShowFile(string path)
     {
-        _pendingFile = path;
-        _pending = null;
+        _pendingFile = _shownFile = path;
+        _pending = _shown = null;
         Fault = null;
         Zoom = 0f;
         Pan = Vector2.Zero;
@@ -86,6 +89,14 @@ public sealed unsafe class TextureView : OpenGlControlBase
     }
 
     private string? _pendingFile;
+
+    /// <summary>
+    /// WHAT THIS VIEW IS SHOWING, kept after the upload. Switching tabs detaches the control, which tears its GL down and
+    /// frees the texture; coming back initialises a new context with nothing pending, so the tab stayed blank. Init puts
+    /// this back up.
+    /// </summary>
+    private UTexture? _shown;
+    private string? _shownFile;
 
     /// <summary>Back to fitting the window, which is also what a newly opened texture does.</summary>
     public void Fit()
@@ -151,6 +162,13 @@ public sealed unsafe class TextureView : OpenGlControlBase
             _shader = new Shader(_gl, Shaders.TextureVertex, Shaders.TextureFragment);
             _textures = new TextureCache(_gl);
             BuildQuad();
+
+            // A NEW CONTEXT AFTER A TAB SWITCH: upload what this view was showing again, keeping the zoom and pan.
+            if (_pending is null && _pendingFile is null)
+            {
+                if (_shownFile is not null) _pendingFile = _shownFile;
+                else if (_shown is not null) _pending = _shown;
+            }
         }
         catch (Exception e) { Fault = e.Message; Console.WriteLine("[texture] GL FAILED: " + e); }
     }

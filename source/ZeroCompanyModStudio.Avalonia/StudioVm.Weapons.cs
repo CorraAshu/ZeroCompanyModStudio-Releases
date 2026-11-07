@@ -475,6 +475,7 @@ public sealed partial class StudioVm
         if (leaf is null) { Say($"{row.Variant}: {why}"); return; }
 
         mine.MeshFile = leaf;
+        TakeDeclaredBasis(mine, leaf);
         _mod.Save();
 
         row.Replacement = leaf;

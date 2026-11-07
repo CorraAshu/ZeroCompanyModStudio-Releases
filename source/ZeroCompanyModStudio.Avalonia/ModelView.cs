@@ -426,6 +426,9 @@ public sealed unsafe class ModelView : OpenGlControlBase
     /// </summary>
     public bool CanTint => _mesh?.Sections.Any(s => s.TintMask != 0) ?? false;
 
+    /// <summary>Whether a mesh is built on the GPU right now -- false between a tab switch's teardown and the rebuild.</summary>
+    public bool HasMesh => _mesh is not null;
+
     /// <summary>
     /// WHICH SECTIONS CARRY A TINT MASK OF THEIR OWN, for a driver flag to read back.
     ///
@@ -514,6 +517,7 @@ public sealed unsafe class ModelView : OpenGlControlBase
     {
         _pending = asset;
         _asset = asset;
+        _shownFbx = null;
         _wantLod = -1;
         _framed = false;
         Fault = null;
@@ -528,17 +532,16 @@ public sealed unsafe class ModelView : OpenGlControlBase
     /// animates here animates in game. Without it the file draws at rest.
     ///
     /// RenderMesh.FromFbx already existed in the linked renderer; this is a call, not a reader.
-    /// </summary>
-    /// <summary>
-    /// Draw an imported FBX. <paramref name="mapping"/> is the project's axis mapping for it ("XZY", "-X-ZY"; null =
-    /// the default) and <paramref name="scale"/> its centimetres per file unit (0 = the file's own node), the same
-    /// two the build reads, so the preview shows the import the build will make.
+    ///
+    /// <paramref name="mapping"/> is the project's axis mapping for it ("XZY", "-X-ZY"; null = the default) and
+    /// <paramref name="scale"/> its centimetres per file unit (0 = the file's own node), the same two the build reads,
+    /// so the preview shows the import the build will make.
     /// </summary>
     public void ShowFbx(string path, string? mapping, Skeleton? rig, float scale = 0f,
                         IReadOnlyList<UMaterialInterface?>? materials = null,
                         IReadOnlyList<IReadOnlyDictionary<string, string>?>? ownTextures = null)
     {
-        _pendingFbx = (path, mapping, rig, scale);
+        _pendingFbx = _shownFbx = (path, mapping, rig, scale);
         _fbxMaterials = materials;
         _fbxOwnTextures = ownTextures;
         _pending = null;
@@ -550,6 +553,10 @@ public sealed unsafe class ModelView : OpenGlControlBase
     }
 
     private (string Path, string? Mapping, Skeleton? Rig, float Scale)? _pendingFbx;
+
+    /// <summary>The imported file this view shows, kept after the build -- what a tab switch's new context and a Refresh
+    /// put back up. _pendingFbx alone was consumed by the first build, so an import's tab came back blank.</summary>
+    private (string Path, string? Mapping, Skeleton? Rig, float Scale)? _shownFbx;
 
     /// <summary>Per section of the imported file: the material it wears (the game mesh's, or the slot the project
     /// names) and the author's own images over it -- what the old Studio's preview did, so an import is seen painted
@@ -566,7 +573,7 @@ public sealed unsafe class ModelView : OpenGlControlBase
     /// </summary>
     public void Refresh()
     {
-        if (_pendingFbx is { } f) { _pendingFbx = f; RequestNextFrameRendering(); return; }
+        if (_shownFbx is { } f) { _pendingFbx = f; RequestNextFrameRendering(); return; }
         if (_asset is { } a) { _pending = a; RequestNextFrameRendering(); }
     }
 
@@ -665,6 +672,8 @@ public sealed unsafe class ModelView : OpenGlControlBase
             //
             // _asset survived the whole time. The fix is a re-queue, not a package read.
             if (_pendingFbx is null && _asset is { } again && _mesh is null) _pending = again;
+            // AND AN IMPORTED FILE, which has no _asset: the same blank tab, for the author's own meshes.
+            else if (_pendingFbx is null && _asset is null && _shownFbx is { } fbx && _mesh is null) _pendingFbx = fbx;
         }
         catch (Exception e) { Fault = e.Message; Console.WriteLine("[viewport] GL FAILED: " + e); }
     }

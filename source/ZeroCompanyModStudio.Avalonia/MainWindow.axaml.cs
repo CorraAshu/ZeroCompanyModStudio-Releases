@@ -267,6 +267,37 @@ public partial class MainWindow : Window
             // viewport to finish building, and print how many GL mesh buffers and textures are alive after each; then
             // close the tabs one by one the way their X does and print the counts again. A viewport that leaks across
             // parts shows it as counts that climb with every part and do not fall when the tabs are closed.
+            // --texseq "<name>,<name>,...": open each texture in its own tab the way View does, give each two seconds, and
+            // say whether its viewer ever uploaded it (ImageWidth > 0). A viewer that misses its first frame stays blank
+            // and says nothing, which is what the author saw on some textures and not others.
+            var tseq = Array.IndexOf(args, "--texseq");
+            if (tseq >= 0 && tseq + 1 < args.Length)
+            {
+                var drew = 0; var total = 0;
+                var opened = new List<TextureTab>();
+                foreach (var name in args[tseq + 1].Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    await _vm.OpenByNameAsync(name);
+                    await Task.Delay(2000);
+                    total++;
+                    if (_vm.Tab is TextureTab seen) opened.Add(seen);
+                    if (_vm.Tab is TextureTab shown && shown.View.HasImage) drew++;
+                    else _vm.Say($"[texseq] {name}: NOT DRAWN ({(_vm.Tab as TextureTab)?.Status ?? "no texture tab"})");
+                }
+                _vm.Say($"[texseq] {drew} of {total} drew");
+
+                // AND BACK TO EACH, as a person returns to a tab: switching away tears the viewer's GL down.
+                var back = 0;
+                foreach (var t in opened)
+                {
+                    _vm.Tab = t;
+                    await Task.Delay(1500);
+                    if (t.View.HasImage) back++;
+                    else _vm.Say($"[texseq] back to {t.Title}: NOT DRAWN");
+                }
+                _vm.Say($"[texseq] on return {back} of {opened.Count} drew");
+            }
+
             var seq = Array.IndexOf(args, "--partsseq");
             if (seq >= 0 && seq + 1 < args.Length) await PartsSequenceAsync(args[seq + 1].Split(',', StringSplitOptions.RemoveEmptyEntries));
 
@@ -1286,6 +1317,19 @@ public partial class MainWindow : Window
                 }
                 _vm.Say($"[viewall] {n} viewed; mesh tabs open: " +
                         string.Join(" | ", _vm.Tabs.OfType<MeshTab>().Select(t => t.Title)));
+
+                // AND BACK TO EACH, as a person returns to a tab: switching away tears the viewport's GL down, and the
+                // mesh must be rebuilt on return, imported file or game mesh alike.
+                var meshTabs = _vm.Tabs.OfType<MeshTab>().ToList();
+                var back = 0;
+                foreach (var t in meshTabs)
+                {
+                    _vm.Tab = t;
+                    await Task.Delay(2500);
+                    if (t.View.HasMesh) back++;
+                    else _vm.Say($"[viewall] back to {t.Title}: NOT DRAWN");
+                }
+                _vm.Say($"[viewall] on return {back} of {meshTabs.Count} drew");
             }
 
             var ec = Array.IndexOf(args, "--editcopy");
@@ -1302,6 +1346,17 @@ public partial class MainWindow : Window
                     // importing over paint that is already there, reverting it, changing a
                     // picture that was chosen months ago.
                     if (_vm.Tab is PartTab opened) await DrivePanel(opened);
+
+                    // --meshbuttons: the mesh rows' buttons as drawn, read off the visual tree.
+                    if (args.Contains("--meshbuttons") && _vm.Tab is PartTab drawn)
+                    {
+                        for (var spin = 0; spin < 40 && drawn.MeshRows.Count == 0; spin++) await Task.Delay(250);
+                        await Task.Delay(500);
+                        _vm.Say("[override] part mesh row buttons drawn: " + string.Join(", ",
+                            this.GetVisualDescendants().OfType<Button>()
+                                .Where(b => b.DataContext is SheetTab.MeshRow && b.IsEffectivelyVisible)
+                                .Select(b => b.Content as string ?? "?")));
+                    }
                 }
                 else
                     _vm.Say($"--editcopy: no copy matching '{want}' — " +
@@ -2137,6 +2192,124 @@ public partial class MainWindow : Window
             var ea = Array.IndexOf(args, "--exportanim");
             if (ea >= 0 && ea + 1 < args.Length && _vm.Tab is MeshTab expAnim)
                 _vm.ExportAnimation(expAnim, args[ea + 1]);
+
+            // --importmodel <fbx>: the Import button on a GAME mesh's tab, which is how an override of a mesh is made (Mass
+            // Deffect's Runa). Only ever pointed at a scratch project.
+            var imo = Array.IndexOf(args, "--importmodel");
+            if (imo >= 0 && imo + 1 < args.Length && _vm.Tab is MeshTab impModel)
+                _vm.ImportModel(impModel, args[imo + 1]);
+
+            // --editoverride <target fragment> [--ovtex <row fragment> <image>] [--ovview] [--ovrevert]: click an override in
+            // the mod's list, as the author does, and say what opened -- its mesh row, its texture rows, the fit card. Then
+            // optionally import an image over one texture row, press View on the mesh row, or Revert the mesh row, and say
+            // what the project holds after each.
+            var eo = Array.IndexOf(args, "--editoverride");
+            if (eo >= 0 && eo + 1 < args.Length && _vm.Mod is { } ovMod)
+            {
+                var ovWant = args[eo + 1];
+                if (ovMod.Overrides.FirstOrDefault(o => o.Target.Contains(ovWant, StringComparison.OrdinalIgnoreCase))
+                    is not { } ovHit)
+                    _vm.Say($"[override] no override matching '{ovWant}' among {ovMod.Overrides.Count}");
+                else
+                {
+                    var before = _vm.Tab;
+                    var leafOf = ovHit.Target[(ovHit.Target.LastIndexOf('/') + 1)..];
+                    await _vm.OpenAssetAsync(new AssetRow { Name = leafOf, Type = "Override", Path = ovHit.Target,
+                                                            Payload = ovHit, Modified = true });
+                    var ovTab = _vm.Tab;
+                    if (ReferenceEquals(ovTab, before) || ovTab is null)
+                        _vm.Say("[override] nothing opened");
+                    else if (ovTab is SheetTab ovSheet)
+                    {
+                        for (var spin = 0; spin < 80 && ovSheet.ReadsTextures && !ovSheet.HasTextureRows; spin++)
+                            await Task.Delay(250);
+                        _vm.Say($"[override] opened {ovTab.GetType().Name} '{ovTab.Title}'; mesh rows " +
+                                string.Join(", ", ovSheet.MeshRows.Select(r => $"{r.Variant} = {r.GamePath} <- " +
+                                    (r.Replacement.Length > 0 ? r.Replacement : "the game's own"))) +
+                                $"; {ovSheet.TextureRows.Count} texture row(s); fit card {(ovSheet.SecFit.Present ? "shown" : "absent")}");
+                        foreach (var r in ovSheet.TextureRows)
+                            _vm.Say($"[override]    {r.Slot} {r.GameLeaf} <- " +
+                                    (r.Replacement.Length > 0 ? r.Replacement : "the game's own"));
+
+                        // THE MESH ROW'S BUTTONS AS DRAWN, read off the visual tree: a binding that fails shows the button.
+                        await Task.Delay(500);
+                        _vm.Say("[override] mesh row buttons drawn: " + string.Join(", ",
+                            this.GetVisualDescendants().OfType<Button>()
+                                .Where(b => b.DataContext is SheetTab.MeshRow && b.IsEffectivelyVisible)
+                                .Select(b => b.Content as string ?? "?")));
+
+                        var ovt = Array.IndexOf(args, "--ovtex");
+                        if (ovt >= 0 && ovt + 2 < args.Length)
+                        {
+                            var rowWant = args[ovt + 1];
+                            if (ovSheet.TextureRows.FirstOrDefault(
+                                    r => r.GameLeaf.Contains(rowWant, StringComparison.OrdinalIgnoreCase)) is not { } texHit)
+                                _vm.Say($"[override] no texture row matching '{rowWant}'");
+                            else
+                            {
+                                _vm.ImportTextureRow(texHit, args[ovt + 2]);
+                                _vm.Say($"[override] after the texture import: {texHit.GameLeaf} <- " +
+                                        (texHit.Replacement.Length > 0 ? texHit.Replacement : "the game's own"));
+                            }
+                        }
+
+                        if (args.Contains("--ovview") && ovSheet.MeshRows.Count > 0)
+                        {
+                            await _vm.ViewMeshRowAsync(ovSheet.MeshRows[0]);
+                            await Task.Delay(4000);
+                            _vm.Say($"[override] view: {(_vm.Tab as MeshTab)?.Title ?? "no mesh tab"} drew " +
+                                    ((_vm.Tab as MeshTab)?.View.HasMesh == true ? "a mesh" : "NOTHING"));
+                            var ovs = Array.IndexOf(args, "--ovshot");
+                            if (ovs >= 0 && ovs + 1 < args.Length && _vm.Tab is MeshTab ovShotTab)
+                            {
+                                ovShotTab.View.ShotTo(args[ovs + 1]);
+                                await Task.Delay(1500);
+                            }
+                            _vm.Tab = ovSheet;
+                        }
+
+                        if (args.Contains("--ovrevert") && ovSheet.MeshRows.Count > 0)
+                        {
+                            RevertMeshRowOn(ovSheet.MeshRows[0]);
+                            _vm.Say($"[override] after Revert: mesh row <- " +
+                                    (ovSheet.MeshRows.FirstOrDefault()?.Replacement is { Length: > 0 } back ? back : "the game's own"));
+                        }
+
+                        // --ovwear <slot> <material package>: Wear a game material on one slot, as the material card does.
+                        var ovw = Array.IndexOf(args, "--ovwear");
+                        if (ovw >= 0 && ovw + 2 < args.Length && int.TryParse(args[ovw + 1], out var ovwSlot) &&
+                            ovwSlot >= 0 && ovwSlot < ovSheet.MaterialGroups.Count)
+                            _vm.WearMaterial(ovSheet, ovSheet.MaterialGroups[ovwSlot], args[ovw + 2]);
+
+                        // --ovanysize: tick "Let a replacement be a very different size" and press Save, as the author does.
+                        if (args.Contains("--ovanysize"))
+                        {
+                            _vm.Say($"[override] size rule before: box {ovSheet.EditAnySize}, project " +
+                                    (ovMod.Overrides.FirstOrDefault(o => o.Target == ovHit.Target)?.MeshAnySize.ToString() ?? "no override"));
+                            ovSheet.EditAnySize = true;
+                            SaveEditOn();
+                            _vm.Say("[override] size rule after Save: project " +
+                                    (ovMod.Overrides.FirstOrDefault(o => o.Target == ovHit.Target)?.MeshAnySize.ToString() ?? "no override") +
+                                    $", unsaved changes {ovSheet.DirtyCount}");
+                        }
+
+                        // WHAT THE SHEET SAYS NOW, after any of the above.
+                        _vm.Say("[override] sheet: " + string.Join(" | ", ovSheet.Sheet.Select(b => b switch
+                        {
+                            SheetFact f => $"{f.Label}={f.Value}",
+                            SheetBand band => band.Text,
+                            SheetBullet bullet => bullet.Text,
+                            _ => b.GetType().Name,
+                        })));
+                    }
+                    else _vm.Say($"[override] opened {ovTab.GetType().Name} '{ovTab.Title}'");
+
+                    _vm.Say("[override] project now: " + string.Join(" | ", ovMod.Overrides.Select(o =>
+                        o.Target[(o.Target.LastIndexOf('/') + 1)..] +
+                        (o.MeshFile.Length > 0 ? " mesh=" + o.MeshFile : "") +
+                        (o.Image.Length > 0 ? " image=" + o.Image : ""))));
+                }
+            }
 
             var gs = Array.IndexOf(args, "--glshot");
             if (gs >= 0 && gs + 1 < args.Length)
@@ -5497,12 +5670,16 @@ public partial class MainWindow : Window
         else _vm.Say($"could not import {System.IO.Path.GetFileName(path)}: {why}");
     }
 
-    private void OnSavePartEdit(object? sender, RoutedEventArgs e)
+    private void OnSavePartEdit(object? sender, RoutedEventArgs e) => SaveEditOn();
+
+    /// <summary>Save, by what kind of tab is open -- the button's own dispatch.</summary>
+    private void SaveEditOn()
     {
         if (_vm.Tab is PartTab part) _vm.SavePartEdit(part);
         else if (_vm.Tab is WeaponTab weapon) _vm.SaveWeaponEdit(weapon);
         else if (_vm.Tab is SpecTab spec) _vm.SaveSpecEdit(spec);
         else if (_vm.Tab is ModTab details) _vm.SaveModDetails(details);
+        else if (_vm.Tab is OverrideTab rewrite) _vm.SaveOverrideEdit(rewrite);
         // A MESH COPY HAS NOTHING TO SAVE. Its geometry and its paint are written as they
         // happen, as every import here is, so a Save that reported success would be reporting
         // work that was already on disk before the button existed.
@@ -5575,9 +5752,15 @@ public partial class MainWindow : Window
     /// <summary>Put one mesh row back to the game's own geometry.</summary>
     private void OnRevertMeshRow(object? sender, RoutedEventArgs e)
     {
-        if (RowOf(sender) is not { } row) return;
+        if (RowOf(sender) is { } row) RevertMeshRowOn(row);
+    }
+
+    /// <summary>Revert on a mesh row, by what kind of tab it sits on -- the button's own dispatch.</summary>
+    private void RevertMeshRowOn(SheetTab.MeshRow row)
+    {
         if (_vm.Tab is WeaponTab weapon) _vm.RevertWeaponPiece(weapon, row);
         else if (_vm.Tab is ReplacementTab own) _vm.RevertReplacementRow(own, row);
+        else if (_vm.Tab is OverrideTab rewrite) _vm.RevertOverrideMeshRow(rewrite, row);
         else if (_vm.Tab is PartTab tab) _vm.RevertMeshRow(tab, row);
     }
 
@@ -5752,19 +5935,23 @@ public partial class MainWindow : Window
     /// </summary>
     private async void OnPickTextureRow(object? sender, RoutedEventArgs e)
     {
-        if (TexOf(sender) is not { } row || _vm.Tab is not PartTab tab) return;
+        // ON ANY SHEET WITH TEXTURE ROWS, not only a part's. The button shows on every row that has a holder, and on a
+        // mesh override or a mesh copy it returned here and did nothing; PickTextureRow and ImportTextureRow already
+        // know where each kind of tab writes. Only the menu PICTURE is a part's own.
+        if (TexOf(sender) is not { } row || _vm.Tab is not SheetTab) return;
+        var tab = _vm.Tab as PartTab;
 
         // WHAT COULD PLAUSIBLY GO HERE, ticked by default — the old studio's "Legs only".
         //
         // The menu picture wants the game's part THUMBNAILS, not nine thousand textures
         // including the galaxy map's UI atlas. A texture the mesh wears wants one of the same
         // SHAPE, because anything else is silently resized and on a mask that is destructive.
-        var picture = ReferenceEquals(row, tab.IconRow);
+        var picture = tab is not null && ReferenceEquals(row, tab.IconRow);
 
         // THE MENU PICTURE ASKS THE CATALOGUE, not the asset index: pictures parts actually
         // wear, and the tick narrows them to this part's own slot — which is the "Legs only" in
         // his screenshot, and 1,296 icons rather than 9,590 raw textures to begin with.
-        var slot = picture ? ModProject.FromSlotTag(tab.Entry.Part.Slot) : null;
+        var slot = picture ? ModProject.FromSlotTag(tab!.Entry.Part.Slot) : null;
         var icons = picture ? _vm.IconChoices(slot) : default;
 
         var scopeLabel = picture
@@ -5806,12 +5993,12 @@ public partial class MainWindow : Window
         // route — one that writes ModPart.Icon rather than a texture entry nothing reads.
         if (picker.Chosen is { } package)
         {
-            if (picture && tab.Copy is not null) _vm.PickPartIcon(tab, package);
+            if (picture && tab!.Copy is not null) _vm.PickPartIcon(tab, package);
             else _vm.PickTextureRow(row, package);
         }
         else if (picker.ChosenOwn is { } file)
         {
-            if (picture) _vm.ImportPartIcon(tab, file);
+            if (picture) _vm.ImportPartIcon(tab!, file);
             else _vm.ImportTextureRow(row, file);
         }
     }

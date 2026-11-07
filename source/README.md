@@ -1,6 +1,6 @@
-# Source: Zero Company Mod Studio and Level Editor 2.0.0
+# Source: Zero Company Mod Studio and Level Editor 2.0.1
 
-The source of the two programs in the 2.0.0 download, by **Clonetrooper163**.
+The source of the two programs in the 2.0.1 download, by **Clonetrooper163**.
 
 **This is a snapshot, not a working repository.** It holds what the release was built from and is replaced
 when the next release goes out. To build it, read [BUILDING.md](BUILDING.md).

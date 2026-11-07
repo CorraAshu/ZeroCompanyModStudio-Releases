@@ -247,6 +247,7 @@ public sealed partial class StudioVm
         WeaponTab w => ReferenceEquals(w.Copy, item),
         CopyTab c => ReferenceEquals(c.Copy, item),
         ReplacementTab m => ReferenceEquals(m.Mesh, item),
+        OverrideTab o => item is ModOverride ov && o.Target.Equals(ov.Target, StringComparison.OrdinalIgnoreCase),
         SpecTab s => ReferenceEquals(s.Spec, item),
         _ => false,
     };

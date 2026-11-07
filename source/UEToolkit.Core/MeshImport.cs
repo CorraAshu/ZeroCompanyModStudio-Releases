@@ -15,6 +15,36 @@ namespace UEToolkit.Core;
 public static class MeshImport
 {
     /// <summary>
+    /// The axis mapping a file's own GlobalSettings ask for, where they name a system whose mapping has been MEASURED;
+    /// null for every other file, which keeps the default (XZY, measured on Y-up exports from Max).
+    ///
+    /// ONE SYSTEM SO FAR: Z up, front -Y, X right -- right-handed, 3ds Max's and Blender's own, and the system this
+    /// toolkit's FBX export declares (FbxMeshExport with RightHanded: Unreal's coordinates with Y negated). Read with the
+    /// default, a character the Studio exported and imported straight back lay face down: Runa's override measured
+    /// (1.00x, 4.41x, 0.23x) against her own mesh. Under "X-YZ" -- Unreal's Y from the file's negated Y -- the same file
+    /// is Unreal's coordinates again.
+    ///
+    /// Not applied by the builder: a blank basis still means XZY there, so every project that already builds keeps
+    /// building the same bytes. The Studio asks this when a file is IMPORTED and writes the answer into the project,
+    /// where the fit card shows it and the author can change it.
+    /// </summary>
+    public static string? DeclaredBasis(string fbxPath)
+    {
+        try
+        {
+            var g = FbxReader.Read(fbxPath).GlobalSettings();
+            double At(string key, double otherwise) => g.TryGetValue(key, out var v) ? v : otherwise;
+
+            if (At("UpAxis", -1) == 2 && At("UpAxisSign", 1) == 1 &&
+                At("FrontAxis", -1) == 1 && At("FrontAxisSign", 1) == -1 &&
+                At("CoordAxis", -1) == 0 && At("CoordAxisSign", 1) == 1)
+                return "X-YZ";
+            return null;
+        }
+        catch (Exception) { return null; }
+    }
+
+    /// <summary>
     /// How the file's axes map onto Unreal's, and how big a file unit is.
     ///
     /// Held as data rather than baked in because it is the single decision most likely to be

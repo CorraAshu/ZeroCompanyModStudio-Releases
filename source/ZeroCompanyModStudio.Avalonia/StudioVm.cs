@@ -1856,6 +1856,13 @@ public sealed partial class StudioVm : Obs
             case ReplacementTab own:
                 return own.Mesh.Materials;
 
+            // A GAME MESH THIS MOD REWRITES names a material per slot on its override, which the build reads.
+            case OverrideTab rewrite when _mod is not null:
+                var mine = OverrideOf(rewrite);
+                if (mine is null && create)
+                { mine = new ModOverride { Target = rewrite.Target }; _mod.Overrides.Add(mine); }
+                return mine?.Materials;
+
             case WeaponTab { Copy: { } weapon } when _mod is not null && _provider is not null:
                 // BY THE PIECE'S OWN MESH ENTRY, as PaintTarget does it: the entry is keyed on
                 // the game asset the piece copies, not on the slot's name.
@@ -1943,6 +1950,8 @@ public sealed partial class StudioVm : Obs
         Say(wanted.Length > 0
             ? $"{group.Title}: the mesh calls this slot {wanted}"
             : $"{group.Title}: the slot's name is worked out by the build again");
+        // An override's slot can be the first thing it says, or the last: the list and the open tab follow.
+        if (tab is OverrideTab) BuildModifiedSet();
         AfterEditsChanged();
     }
 
@@ -1967,6 +1976,7 @@ public sealed partial class StudioVm : Obs
 
         tab.AddMaterialGroup(new SheetTab.MaterialGroup(at, piece, "", "", onMesh: false, ""));
         Say($"material {at + 1}: added — name a material for it, or paint it");
+        if (tab is OverrideTab) BuildModifiedSet();
         AfterEditsChanged();
     }
 
@@ -1978,7 +1988,13 @@ public sealed partial class StudioVm : Obs
     {
         // ONLY AN OVERRIDE CAN BE LEFT EMPTY. A copy and a mesh copy have nothing of the game's
         // to rewrite, so there is no byte-for-byte rewrite to avoid shipping.
-        if (_mod is null || tab is not PartTab { Copy: null } part) return;
+        if (_mod is null) return;
+        if (tab is OverrideTab rewrite)
+        {
+            if (OverrideOf(rewrite) is { } ov && !ov.HasEdit && ov.Icon.Length == 0) _mod.Overrides.Remove(ov);
+            return;
+        }
+        if (tab is not PartTab { Copy: null } part) return;
         DropEmptyOverrideOn(part);
     }
 
@@ -2020,6 +2036,7 @@ public sealed partial class StudioVm : Obs
         var ov = !copyMode && _mod is not null && tab is PartTab pt
             ? _mod.Overrides.FirstOrDefault(
                 o => o.Target.Equals(pt.Entry.Part.Path, StringComparison.OrdinalIgnoreCase))
+            : !copyMode && tab is OverrideTab rewrite ? OverrideOf(rewrite)
             : null;
 
         foreach (var (piece, onMesh, slots) in pieces)
@@ -3156,6 +3173,7 @@ public sealed partial class StudioVm : Obs
         if (_tab is ReplacementTab own)
         {
             own.Mesh.MeshFile = leaf;
+            TakeDeclaredBasis(own.Mesh, leaf);
             _mod.Save();
             row.Replacement = leaf;
             row.Mark();
@@ -3173,8 +3191,9 @@ public sealed partial class StudioVm : Obs
         if (CopyOpen is { } copy)
         {
             // PER PIECE when the garment has pieces, part-wide when it does not.
-            if (row.PerPiece) PieceOf(copy, row).MeshFile = leaf;
-            else copy.MeshFile = leaf;
+            IMeshAuthoring onto = row.PerPiece ? PieceOf(copy, row) : copy;
+            onto.MeshFile = leaf;
+            TakeDeclaredBasis(onto, leaf);
 
             _mod.Save();
             row.Replacement = leaf;
@@ -3191,12 +3210,15 @@ public sealed partial class StudioVm : Obs
             o => o.Target.Equals(row.GamePath, StringComparison.OrdinalIgnoreCase));
         if (ov is null) { ov = new ModOverride { Target = row.GamePath }; _mod.Overrides.Add(ov); }
         ov.MeshFile = leaf;
+        TakeDeclaredBasis(new OverrideMesh(ov), leaf);
         _mod.Save();
 
         row.Replacement = leaf;
         // The project is already written, so this is a change FROM THE GAME rather than one
         // waiting on Save. The save bar counts what Save would write.
         row.Mark();
+        // ON THE OVERRIDE'S OWN SCREEN the sheet and the fit card describe the file, so they are read back too.
+        if (_tab is OverrideTab ovTab) RefillOverride(ovTab);
         BuildModifiedSet();
         _artVersion++;
         Say($"{row.Variant}: {row.GameLeaf} now uses {leaf} — the build checks it fits, per LOD");
@@ -3369,6 +3391,13 @@ public sealed partial class StudioVm : Obs
         var own = MeshAuthoringOf(row.Replacement);
         var modPath = _modPath;
 
+        // THE GAME TEXTURES THIS MOD REPLACES, by package. A replacement's paint is not on the override -- it is separate
+        // overrides repainting the game's own textures in place -- so the import is seen wearing them only if they are
+        // looked for on its materials. Taken here, on the UI thread, because the project is not the worker's to read.
+        var replaced = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var o in _mod?.Overrides ?? [])
+            if (o.Image.Length > 0) replaced.TryAdd(o.Target, o.Image);
+
         // THE RIG, AND WHAT EACH SECTION WEARS: the material the project names for that slot, else the game mesh's own,
         // with the author's images over it -- as the old Studio's preview did, so an import is seen painted, not grey.
         var (rig, materials, mine) = await Task.Run(() =>
@@ -3400,6 +3429,19 @@ public sealed partial class StudioVm : Obs
                             if (image is { Length: > 0 } && !image.Contains('/') &&
                                 ModBuild.FindImage(image, modPath) is { } found && File.Exists(found))
                                 paint[key] = found;
+
+                    // AND THE GAME'S OWN TEXTURES THIS MOD REPLACES, on a slot still wearing the game's material: keyed by
+                    // the texture's suffix and its material parameters, the two spellings PaintOwn knows a role by. The
+                    // slot's own paint above wins a role both name.
+                    if (replaced.Count > 0 && !(i < slots.Count && slots[i].Material is { Length: > 0 }) &&
+                        MaterialSkin.Read(provider, gamePkg, out _, i) is { } chain)
+                        foreach (var skin in chain.Skins)
+                            if (replaced.TryGetValue(skin.TexturePackage, out var over) &&
+                                ModBuild.FindImage(over, modPath) is { } overFile && File.Exists(overFile))
+                            {
+                                if (skin.Suffix.Length > 0) paint.TryAdd(skin.Suffix, overFile);
+                                foreach (var p in skin.Parameters) paint.TryAdd(p, overFile);
+                            }
                     images.Add(paint.Count > 0 ? paint : null);
                 }
             }
@@ -3513,7 +3555,11 @@ public sealed partial class StudioVm : Obs
         // appears when a part carries no body-type rows is the same box here — and leaving it
         // out meant typing a file name into it saved nothing, which is the shape of fault this
         // panel has already paid for three times.
-        if (tab.EditMesh.Trim().Length > 0) copy.MeshFile = tab.EditMesh.Trim();
+        if (tab.EditMesh.Trim().Length > 0 && copy.MeshFile != tab.EditMesh.Trim())
+        {
+            copy.MeshFile = tab.EditMesh.Trim();
+            TakeDeclaredBasis(copy, copy.MeshFile);
+        }
 
         // WHERE IT GOES.
         if (tab.EditSlot.Length > 0) copy.Slot = tab.EditSlot;
@@ -3620,7 +3666,9 @@ public sealed partial class StudioVm : Obs
         if (ov is null) { ov = new ModOverride { Target = e.Part.Path }; _mod.Overrides.Add(ov); }
         ov.DisplayName = sameName ? "" : name;
         ov.Description = sameText ? "" : text;
+        var newMesh = tab.EditMesh.Trim().Length > 0 && ov.MeshFile != tab.EditMesh.Trim();
         ov.MeshFile = tab.EditMesh.Trim();
+        if (newMesh) TakeDeclaredBasis(new OverrideMesh(ov), ov.MeshFile);
 
         // ITS OWN FIELD NOW. ov.Image is the asset's own PIXELS and ModBuild reads it in exactly
         // one place, the texture branch — so an icon written there made the build ask whether a
@@ -3889,6 +3937,11 @@ public sealed partial class StudioVm : Obs
         if (row.Payload is ModMesh own) { await EditReplacement(own); return; }
         if (row.Payload is ModSpec spec) { await EditSpec(spec); return; }
         if (row.Payload is ModMission ownMission) { await EditMission(ownMission); return; }
+
+        // AND AN OVERRIDE: a game mesh this mod rewrites opens the mesh copy's screen, writing to the override, and a
+        // texture opens on the import. Mass Deffect imported over Runa's mesh and was told it had no editor.
+        if (row.Payload is ModOverride ownMesh && IsMeshOverride(ownMesh)) { await EditOverride(ownMesh); return; }
+        if (row.Payload is ModOverride ownImage && ownImage.Image.Length > 0) { OpenTextureOverride(ownImage); return; }
 
         if (row.Payload is not AssetNode file)
         {
@@ -4296,6 +4349,7 @@ public sealed partial class StudioVm : Obs
             o => o.Target.Equals(package, StringComparison.OrdinalIgnoreCase));
         if (ov is null) { ov = new ModOverride { Target = package }; _mod.Overrides.Add(ov); }
         ov.MeshFile = leaf;
+        TakeDeclaredBasis(new OverrideMesh(ov), leaf);
         _mod.Save();
 
         BuildModifiedSet();
@@ -5254,6 +5308,11 @@ public sealed partial class StudioVm : Obs
             try { _modified.Add(ModBuild.ContainerPathFor(o.Target)); }
             catch (Exception) { /* a bold mark is a convenience; never take the panel down for one */ }
         }
+
+        // AND THE OVERRIDE TABS, which describe the same list: every change to an override passes through here, from
+        // whichever tab made it.
+        if (Dispatcher.UIThread.CheckAccess()) RefreshOverrideTabs();
+        else Dispatcher.UIThread.Post(RefreshOverrideTabs);
     }
 
     public void CloseTab(StudioTab tab)
@@ -5754,7 +5813,8 @@ public sealed partial class StudioVm : Obs
 
         foreach (var o in _mod.Overrides)
             yield return Item(o.Target, AssetKind.Data,
-                Leaf(o.Target), "Override", "property view", o);
+                Leaf(o.Target), "Override",
+                IsMeshOverride(o) ? "mesh editor" : o.Image.Length > 0 ? "texture view" : "property view", o);
 
         foreach (var m in _mod.Meshes)
             // NAMED BY WHAT IT COPIES, not by the file put over it. A mesh entry with no
