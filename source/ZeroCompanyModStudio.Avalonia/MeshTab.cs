@@ -83,7 +83,7 @@ public sealed class MeshTab : StudioTab
 
     public MeshTab(string title, string filePath, string type)
     {
-        Title = title;
+        _title = title;
         _filePath = filePath;
         Type = type;
         Props = new AssetTab(title, filePath, type);
@@ -121,10 +121,29 @@ public sealed class MeshTab : StudioTab
         };
     }
 
-    public override string Title { get; }
+    private readonly string _title;
+    public override string Title => Mine is null ? _title : _title + "  (your import)";
+
+    /// <summary>The asset's own name, without "(your import)" -- for file names, dialogs and the log.</summary>
+    public string BaseTitle => _title;
     public override string Tooltip => _filePath;
     public string Type { get; }
     public string FilePath => _filePath;
+
+    /// <summary>
+    /// The author's FBX this tab is showing OVER the game's mesh, or null when it shows the game's own -- set by the view
+    /// model on open, after Import and after Revert. A tab that went on showing the game's mesh after an import the
+    /// project had recorded is what "Import does nothing" was.
+    /// </summary>
+    public string? Mine { get; private set; }
+
+    /// <summary>Say which the viewport now holds; the view model has already handed it the file or the asset.</summary>
+    public void MarkMine(string? file)
+    {
+        if (string.Equals(Mine, file, StringComparison.OrdinalIgnoreCase)) return;
+        Mine = file;
+        Raise(nameof(Title));
+    }
 
     /// <summary>
     /// The mesh PACKAGE this tab stands for, when it was opened from a part's mesh row.
@@ -636,7 +655,9 @@ public sealed class MeshTab : StudioTab
 
         Asset = asset;
         Status = "building the geometry…";
-        View.Show(asset);
+        // THE AUTHOR'S IMPORT, if it went up while the package was being read, stays on screen; the asset is kept for
+        // Export, the properties and a Revert.
+        if (Mine is null) View.Show(asset);
 
         // THE PROPERTIES, READ SEPARATELY AND OFF THE UI THREAD. The viewport wants the mesh
         // object; the grid wants the package's exports and their values, which is a different

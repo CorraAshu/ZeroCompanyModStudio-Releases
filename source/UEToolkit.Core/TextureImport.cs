@@ -197,8 +197,42 @@ public static class TextureImport
         EPixelFormat.PF_DXT1 => Bc1Encoder.Encode(Opaque(rgba), w, h),
         EPixelFormat.PF_DXT5 => Bc3Encoder.Encode(rgba, w, h),
         EPixelFormat.PF_BC5 => Bc5Encoder.Encode(rgba, w, h),
+        // THE REST OF WHAT THE GAME STORES, counted by the private --texscan after an Import over the Anakin portrait
+        // said "no encoder for PF_BC7": BC7 (1,423 textures), BC4 (253, a single channel -- red, as the decoder reads
+        // it), uncompressed BGRA (506) and one-byte grey (23). Only the HDR formats (FloatRGBA, BC6H: 238, nearly all
+        // engine files) are still refused, because an 8-bit PNG or TGA has no HDR to give them.
+        EPixelFormat.PF_BC7 => Bc7Encoder.Encode(rgba, w, h),
+        EPixelFormat.PF_BC4 => Bc4Encoder.Encode(rgba, w, h, channel: 0),
+        EPixelFormat.PF_B8G8R8A8 => Bgra(rgba),
+        EPixelFormat.PF_G8 => Channel(rgba, 0),
         _ => throw new NotSupportedException($"no encoder for {format}"),
     };
+
+    /// <summary>Whether a format is stored in 4x4 blocks -- and so whether a small mip is padded up to one.</summary>
+    public static bool IsBlockFormat(EPixelFormat format) =>
+        format is not (EPixelFormat.PF_B8G8R8A8 or EPixelFormat.PF_G8);
+
+    /// <summary>RGBA to the BGRA order PF_B8G8R8A8 is stored in.</summary>
+    private static byte[] Bgra(byte[] rgba)
+    {
+        var bgra = new byte[rgba.Length];
+        for (var i = 0; i + 3 < rgba.Length; i += 4)
+        {
+            bgra[i] = rgba[i + 2];
+            bgra[i + 1] = rgba[i + 1];
+            bgra[i + 2] = rgba[i];
+            bgra[i + 3] = rgba[i + 3];
+        }
+        return bgra;
+    }
+
+    /// <summary>One channel of RGBA, a byte per pixel.</summary>
+    private static byte[] Channel(byte[] rgba, int channel)
+    {
+        var one = new byte[rgba.Length / 4];
+        for (var i = 0; i < one.Length; i++) one[i] = rgba[i * 4 + channel];
+        return one;
+    }
 
     private static byte[] Opaque(byte[] rgba)
     {
@@ -248,7 +282,10 @@ public static class TextureImport
             for (var i = 0; i < t.MipCount; i++)
             {
                 var lvl = levels[i];
-                var (px, pw, ph) = MipChain.PadToBlock(lvl.Rgba, lvl.Width, lvl.Height);
+                // A BLOCK FORMAT pads a mip smaller than 4x4 up to one block; an uncompressed one stores it as it is.
+                var (px, pw, ph) = IsBlockFormat(t.Format)
+                    ? MipChain.PadToBlock(lvl.Rgba, lvl.Width, lvl.Height)
+                    : (lvl.Rgba, lvl.Width, lvl.Height);
                 var block = Encode(t.Format, px, pw, ph);
 
                 if (i >= t.FirstInlineMip)

@@ -3388,7 +3388,20 @@ public sealed partial class StudioVm : Obs
 
         if (file is null || !File.Exists(file)) { await tab.LoadAsync(provider); return; }
 
-        var own = MeshAuthoringOf(row.Replacement);
+        await ShowFbxOn(tab, gamePkg, row.Replacement, file, row.GameLeaf);
+    }
+
+    /// <summary>
+    /// Draw an imported FBX in a mesh tab the way the build will make it: on the game mesh's rig, with the project's axes
+    /// and scale, each section wearing its material and the author's images. Shared by a mesh row's View and by a game
+    /// mesh's own tab, which shows the import when the open mod replaces that mesh.
+    /// </summary>
+    private async Task ShowFbxOn(MeshTab tab, string gamePkg, string replacement, string file, string gameLeaf)
+    {
+        if (_provider is null) return;
+        var provider = _provider;
+        var row = (GameLeaf: gameLeaf, Replacement: replacement);
+        var own = MeshAuthoringOf(replacement);
         var modPath = _modPath;
 
         // THE GAME TEXTURES THIS MOD REPLACES, by package. A replacement's paint is not on the override -- it is separate
@@ -3455,6 +3468,10 @@ public sealed partial class StudioVm : Obs
 
         // THE PROJECT'S OWN AXES AND SCALE FOR THIS FILE, the two the build reads. This used to pass the game mesh's
         // package as the axis mapping, which the reader rightly refuses ("is not an axis mapping"), so View drew nothing.
+        // A GAME MESH'S OWN TAB MAY HAVE MOVED ON while the rig and materials were read -- a Revert put the game's back,
+        // or a second import replaced this one. Drawing the old file then would show it under a title saying otherwise.
+        if (tab.MeshKey.Length == 0 && !string.Equals(tab.Mine, file, StringComparison.OrdinalIgnoreCase)) return;
+
         var mapping = own?.MeshBasis is { Length: > 0 } basis ? basis : null;
         tab.View.ShowFbx(file, mapping, rig, own?.MeshScale ?? 0f, materials, mine);
         Say($"showing {System.IO.Path.GetFileName(file)} on {row.GameLeaf}'s rig" +
@@ -3760,6 +3777,25 @@ public sealed partial class StudioVm : Obs
         return true;
     }
 
+    /// <summary>Whether two files hold the same bytes -- the length first, which settles nearly every pair.</summary>
+    private static bool SameBytes(string a, string b)
+    {
+        var fa = new FileInfo(a);
+        var fb = new FileInfo(b);
+        if (fa.Length != fb.Length) return false;
+        using var sa = fa.OpenRead();
+        using var sb = fb.OpenRead();
+        var ba = new byte[1 << 16];
+        var bb = new byte[1 << 16];
+        while (true)
+        {
+            var na = sa.ReadAtLeast(ba, ba.Length, throwOnEndOfStream: false);
+            var nb = sb.ReadAtLeast(bb, bb.Length, throwOnEndOfStream: false);
+            if (na != nb || !ba.AsSpan(0, na).SequenceEqual(bb.AsSpan(0, nb))) return false;
+            if (na == 0) return true;
+        }
+    }
+
     /// <summary>
     /// TAKE A FILE INTO THE MOD'S OWN SOURCE FOLDER, and hand back the name to store.
     ///
@@ -3811,9 +3847,14 @@ public sealed partial class StudioVm : Obs
 
             // NAMED, NOT OVERWRITTEN SILENTLY. Two different files under one name is how a helmet
             // ends up wearing somebody else's artwork with nothing anywhere saying why.
+            //
+            // BUT THE SAME FILE AGAIN IS NOT A CLASH. One image over a second texture, or the same image imported again
+            // after a Revert, was refused here as if it were somebody else's -- reported from the Discord as a texture
+            // that "already exists". Identical bytes are one image under one name, so the copy already in the mod is it.
             if (File.Exists(landing))
             {
-                why = $"{kind}/{leaf} already exists in this mod — rename the file you are importing";
+                if (SameBytes(sourceFile, landing)) return leaf;
+                why = $"a different {kind}/{leaf} is already in this mod — rename the file you are importing";
                 return null;
             }
 
@@ -3879,7 +3920,10 @@ public sealed partial class StudioVm : Obs
             if (_tab is MeshTab mt && mt.ArtVersion != _artVersion)
             {
                 mt.ArtVersion = _artVersion;
-                mt.View.Refresh();
+                // A GAME MESH'S TAB SHOWING AN IMPORT is drawn again FROM THE PROJECT: its axes, scale, slots and the
+                // textures the mod replaces may all have changed, and Refresh would put back the copy taken last time.
+                if (mt.MeshKey.Length == 0 && mt.Mine is not null) _ = ShowMineOn(mt, redraw: true);
+                else mt.View.Refresh();
             }
         }
     }
@@ -3987,6 +4031,9 @@ public sealed partial class StudioVm : Obs
             Tab = mesh;
             Raise(nameof(AnyTabs));
             Say($"opened {mesh.Title} in the viewport");
+            // YOURS FIRST, when the open mod replaces this mesh: the game's is then read for Export and the properties
+            // without ever being drawn over it.
+            await ShowMineOn(mesh);
             await mesh.LoadAsync(_provider);
             return;
         }
@@ -4009,6 +4056,7 @@ public sealed partial class StudioVm : Obs
             Tab = tex;
             Raise(nameof(AnyTabs));
             Say($"opened {tex.Title} in the texture viewer");
+            ShowMineOn(tex);
             await tex.LoadAsync(_provider);
             return;
         }
@@ -4054,9 +4102,12 @@ public sealed partial class StudioVm : Obs
         var (path, error) = TextureExport.Write(tab.Texture, directory, package,
                                                 tab.SelectedFormat.Format);
 
+        // THE GAME'S OWN is what Export writes, also when the tab shows the author's import over it -- that import is a
+        // file already on disk. Said so, or "exported T_X (your import)" names the wrong picture.
+        var what = tab.Mine is null ? tab.Title : $"the game's own {Leaf(package)} (yours is {tab.Mine})";
         Say(path is not null
-            ? $"exported {tab.Title} as {tab.SelectedFormat.Name} to {path}"
-            : $"could not export {tab.Title}: {error}");
+            ? $"exported {what} as {tab.SelectedFormat.Name} to {path}"
+            : $"could not export {what}: {error}");
     }
 
     /// <summary>
@@ -4085,9 +4136,9 @@ public sealed partial class StudioVm : Obs
         { Say("this tab shows your own file; to replace it, use Import on the part's texture row"); return; }
 
         var package = PropertyEdit.PackageForFile(tab.FilePath);
-        if (package is null) { Say($"could not work out the package name for {tab.Title}"); return; }
+        if (package is null) { Say($"could not work out the package name for {tab.BaseTitle}"); return; }
 
-        if (RecordTextureOverride(package, imageFile, tab.Title, "Textures")) AfterEditsChanged();
+        if (RecordTextureOverride(package, imageFile, tab.BaseTitle, "Textures")) AfterEditsChanged();
     }
 
     /// <summary>
@@ -4309,7 +4360,9 @@ public sealed partial class StudioVm : Obs
     }
 
     public bool ExportModel(MeshTab tab, string path)
-        => tab.Asset is { } a && ExportOne(a, path, tab.Title);
+        // THE GAME'S OWN is what this writes, also when the tab shows the author's import over it -- said so.
+        => tab.Asset is { } a && ExportOne(a, path,
+               tab.Mine is null ? tab.BaseTitle : $"the game's own {tab.BaseTitle} (yours is {tab.Mine})");
 
     /// <summary>
     /// The loaded animation, as its own file.
@@ -4340,10 +4393,10 @@ public sealed partial class StudioVm : Obs
         if (_mod is null) { Say("open a mod first — an import has to belong to one"); return; }
 
         var package = PropertyEdit.PackageForFile(tab.FilePath);
-        if (package is null) { Say($"could not work out the package name for {tab.Title}"); return; }
+        if (package is null) { Say($"could not work out the package name for {tab.BaseTitle}"); return; }
 
         var leaf = ImportArt(file, "Meshes", out var why);
-        if (leaf is null) { Say($"{tab.Title}: {why}"); return; }
+        if (leaf is null) { Say($"{tab.BaseTitle}: {why}"); return; }
 
         var ov = _mod.Overrides.FirstOrDefault(
             o => o.Target.Equals(package, StringComparison.OrdinalIgnoreCase));
@@ -4354,7 +4407,7 @@ public sealed partial class StudioVm : Obs
 
         BuildModifiedSet();
         _artVersion++;
-        Say($"{tab.Title} now uses {leaf} in this mod — the build checks it fits, per LOD");
+        Say($"{Leaf(package)} now uses {leaf} in this mod — the build checks it fits, per LOD");
         AfterEditsChanged();
     }
 
@@ -5311,8 +5364,9 @@ public sealed partial class StudioVm : Obs
 
         // AND THE OVERRIDE TABS, which describe the same list: every change to an override passes through here, from
         // whichever tab made it.
-        if (Dispatcher.UIThread.CheckAccess()) RefreshOverrideTabs();
-        else Dispatcher.UIThread.Post(RefreshOverrideTabs);
+        // And a game texture's or mesh's own tab, which shows the import that replaces it.
+        if (Dispatcher.UIThread.CheckAccess()) { RefreshOverrideTabs(); RefreshMineTabs(); }
+        else Dispatcher.UIThread.Post(() => { RefreshOverrideTabs(); RefreshMineTabs(); });
     }
 
     public void CloseTab(StudioTab tab)

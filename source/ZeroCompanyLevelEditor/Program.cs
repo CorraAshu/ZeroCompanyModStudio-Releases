@@ -13,7 +13,7 @@ internal static class Program
         // reads the Studio's Program.cs and compares this project's two version elements against it).
         UEToolkit.Core.Branding.SingleGame = true;
         UEToolkit.Core.Branding.Product = "Zero Company Level Editor";
-        UEToolkit.Core.Branding.Version = "2.0.1";
+        UEToolkit.Core.Branding.Version = "2.0.2";
         UEToolkit.Core.Branding.AuthorFirst = true;
         // The folder both programs keep mod projects in by default - ONE name, so a level edit made here
         // and a mod made in the Studio sit in the same place.

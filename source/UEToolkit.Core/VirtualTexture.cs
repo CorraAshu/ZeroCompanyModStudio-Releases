@@ -383,6 +383,10 @@ public static class VirtualTexture
         EPixelFormat.PF_BC4 => 8,
         EPixelFormat.PF_DXT5 => 16,
         EPixelFormat.PF_BC5 => 16,
+        EPixelFormat.PF_BC7 => 16,
+        // UNCOMPRESSED, counted per 4x4 so the page arithmetic below holds: sixteen pixels of four bytes, or of one.
+        EPixelFormat.PF_B8G8R8A8 => 64,
+        EPixelFormat.PF_G8 => 16,
         _ => 0,
     };
 

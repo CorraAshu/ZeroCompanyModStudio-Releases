@@ -17,6 +17,26 @@ public static class Bc4Encoder
 {
     public const int BlockBytes = 8;
 
+    /// <summary>A whole image as BC4, one channel of RGBA8 (red is what a BC4 decoder hands back). Both dimensions must
+    /// divide by four.</summary>
+    public static byte[] Encode(ReadOnlySpan<byte> rgba, int width, int height, int channel)
+    {
+        if (width % 4 != 0 || height % 4 != 0)
+            throw new ArgumentException($"BC4 works in 4x4 blocks; {width}x{height} does not divide");
+        if (rgba.Length < width * height * 4)
+            throw new ArgumentException("not enough pixel data for the stated size");
+
+        var output = new byte[width / 4 * (height / 4) * BlockBytes];
+        var at = 0;
+        for (var by = 0; by < height; by += 4)
+        for (var bx = 0; bx < width; bx += 4)
+        {
+            EncodeBlock(rgba, width, bx, by, 4, channel, output.AsSpan(at, BlockBytes));
+            at += BlockBytes;
+        }
+        return output;
+    }
+
     /// <summary>
     /// Encode one 4x4 block taken from <paramref name="source"/> at a stride, reading one byte per
     /// pixel starting at <paramref name="channel"/>.

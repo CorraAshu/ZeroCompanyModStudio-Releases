@@ -2073,7 +2073,7 @@ public partial class MainWindow : Window
             {
                 var pkg = PropertyEdit.PackageForFile(revTab.FilePath);
                 if (pkg is null) _vm.Say($"--texrevert: no package name for {revTab.Title}");
-                else _vm.RevertPackage(pkg, revTab.Title);
+                else _vm.RevertPackage(pkg, revTab.BaseTitle);
             }
 
             // --list <text> [max]: NAME the assets matching a term, into the log.
@@ -2198,6 +2198,25 @@ public partial class MainWindow : Window
             var imo = Array.IndexOf(args, "--importmodel");
             if (imo >= 0 && imo + 1 < args.Length && _vm.Tab is MeshTab impModel)
                 _vm.ImportModel(impModel, args[imo + 1]);
+
+            // --minereport: what the open tab is SHOWING after any of the above -- the game's own or the author's import --
+            // given four seconds to load. "Import did nothing" was a tab that went on showing the game's file.
+            if (args.Contains("--minereport"))
+            {
+                await Task.Delay(4000);
+                switch (_vm.Tab)
+                {
+                    case TextureTab mt:
+                        _vm.Say($"[mine] texture tab '{mt.Title}': format {mt.Format}, drawn {mt.View.HasImage}");
+                        break;
+                    case MeshTab mm:
+                        _vm.Say($"[mine] mesh tab '{mm.Title}': drawn {mm.View.HasMesh}");
+                        break;
+                    default:
+                        _vm.Say($"[mine] open tab is {_vm.Tab?.GetType().Name ?? "nothing"}");
+                        break;
+                }
+            }
 
             // --editoverride <target fragment> [--ovtex <row fragment> <image>] [--ovview] [--ovrevert]: click an override in
             // the mod's list, as the author does, and say what opened -- its mesh row, its texture rows, the fit card. Then
@@ -5495,7 +5514,7 @@ public partial class MainWindow : Window
         var model = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = $"Export {tab.Title}",
-            SuggestedFileName = tab.Title,
+            SuggestedFileName = tab.BaseTitle,
             DefaultExtension = "fbx",
             FileTypeChoices =
             [
@@ -5610,7 +5629,7 @@ public partial class MainWindow : Window
 
         var picked = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = $"Where to export {tab.Title}",
+            Title = $"Where to export {tab.BaseTitle}",
             AllowMultiple = false,
         });
 

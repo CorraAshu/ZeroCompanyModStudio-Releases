@@ -44,8 +44,8 @@
       Program.cs (what About and the update check read) and these two elements (what Windows shows
       on the exe's Details tab). Change all three together.
     -->
-    <Version>2.0.1</Version>
-    <InformationalVersion>2.0.1</InformationalVersion>
+    <Version>2.0.2</Version>
+    <InformationalVersion>2.0.2</InformationalVersion>
     <!--
       Without this the SDK appends "+<commit hash>" to InformationalVersion, and the exe's Details
       tab then reads "Product version 2.0.0+8d28296...": a number nobody downloading the Studio can

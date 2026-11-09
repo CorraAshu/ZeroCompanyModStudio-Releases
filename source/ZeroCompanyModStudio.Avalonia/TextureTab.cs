@@ -23,7 +23,7 @@ public sealed class TextureTab : StudioTab
 
     public TextureTab(string title, string filePath, string type)
     {
-        Title = title;
+        _title = title;
         _filePath = filePath;
         Type = type;
         View.Loaded += Report;
@@ -38,8 +38,44 @@ public sealed class TextureTab : StudioTab
         };
     }
 
-    public override string Title { get; }
+    private readonly string _title;
+    public override string Title => Mine is null ? _title : _title + "  (your import)";
+
+    /// <summary>The asset's own name, without "(your import)" -- for file names, dialogs and the log.</summary>
+    public string BaseTitle => _title;
     public override string Tooltip => _filePath;
+
+    /// <summary>
+    /// The author's image this tab is showing OVER the game's texture, or null when it shows the game's own.
+    ///
+    /// "Import does nothing" was this tab going on showing the game's file after an import the project had recorded --
+    /// and showing it again when reopened, which read as the log lying. A tab on a game texture the open mod replaces
+    /// shows the replacement; the view model sets it on open, after Import and after Revert.
+    /// </summary>
+    public string? Mine { get; private set; }
+
+    /// <summary>Show the author's import over this game texture.</summary>
+    public void ShowMine(string file)
+    {
+        if (string.Equals(Mine, file, StringComparison.OrdinalIgnoreCase)) return;
+        Mine = file;
+        Raise(nameof(Title));
+        LoadFile(file);
+    }
+
+    /// <summary>Back to the game's own texture, once the mod no longer replaces it.</summary>
+    public void ShowGame()
+    {
+        if (Mine is null) return;
+        Mine = null;
+        Raise(nameof(Title));
+        if (Texture is { } texture)
+        {
+            Format = texture.PlatformData?.PixelFormat.ToString() ?? "?";
+            Status = "decoding…";
+            View.Show(texture);
+        }
+    }
     public string Type { get; }
     public string FilePath => _filePath;
 
@@ -173,6 +209,9 @@ public sealed class TextureTab : StudioTab
         }
 
         Texture = texture;
+        // THE AUTHOR'S IMPORT, if it went up while the package was still being read, stays on screen: the game's
+        // texture is kept for Export and for a Revert.
+        if (Mine is not null) return;
         Format = texture.PlatformData?.PixelFormat.ToString() ?? "?";
         Status = "decoding…";
         View.Show(texture);

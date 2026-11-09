@@ -38,8 +38,8 @@
       disagrees; it checks this project's two elements against the same number. Change all of them
       together.
     -->
-    <Version>2.0.1</Version>
-    <InformationalVersion>2.0.1</InformationalVersion>
+    <Version>2.0.2</Version>
+    <InformationalVersion>2.0.2</InformationalVersion>
     <!-- Without this the SDK appends "+<commit hash>" and the Details tab reads 2.0.0+8d28296...,
          a number nobody downloading it can use (the Studio's csproj says the same). -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
